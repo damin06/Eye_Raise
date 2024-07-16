@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "55306353961",
+    "project_id": "turningknife-c6304",
+    "firebase_url": "https://turningknife-c6304-default-rtdb.firebaseio.com/",
+    "storage_bucket": "turningknife-c6304.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55306353961:android:c00adbe9e4aa22eff0cb38",
+        "android_client_info": {
+          "package_name": "come.damin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5DYUIFGw7R9VUaxfktMDMa-IAQiT-LHI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
