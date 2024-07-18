@@ -9,6 +9,7 @@ public class SoftBodyPhysics : MonoBehaviour
 {
     private float splineOffset = 0.5f;
 
+    //[SerializeField] private SpriteMask spriteMask;
     [SerializeField] private SpriteShapeController spriteShape;
     [SerializeField] private Transform[] points;
 
@@ -17,6 +18,13 @@ public class SoftBodyPhysics : MonoBehaviour
         //if (!IsOwner)
         //    return;
         UpdateVerticies();
+        UpdateSpriteMask();
+    }
+
+    private void UpdateSpriteMask()
+    {
+        //Sprite _newSprite = Sprite.Create(null, spriteRenderer.);
+        //Sprite _newSprite = spriteShape.sp;
     }
 
     private void UpdateVerticies()
