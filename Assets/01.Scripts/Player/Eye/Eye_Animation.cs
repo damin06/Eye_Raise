@@ -6,27 +6,30 @@ using UnityEngine.U2D;
 public class Eye_Animation : MonoBehaviour
 {
     [SerializeField] private Material material;
-    public Material fillMaterial;
-    private SpriteShapeRenderer spriteShapeRenderer;
+    private Material fillMaterial;
 
     private void Awake()
     {
         if (transform.Find("Visual").TryGetComponent(out SpriteShapeRenderer _sprite))
         {
-            var _newMaterial = Instantiate(material);
-            fillMaterial = _newMaterial;
-            _sprite.materials[0] = fillMaterial;
-            //spriteShapeRenderer = _sprite;
-            //_sprite.
+            _sprite.materials[0] = Instantiate(material);
+            fillMaterial = _sprite.materials[0];
         }
+    }
+
+    private void Start()
+    {
+        //Debug.Log(spriteShapeRenderer.GetComponent<Renderer>().materials[0].name);
     }
 
     private void Update()
     {
-        Debug.Log(fillMaterial.GetFloat("_PupilRadisu"));
+        //Debug.Log(spriteShapeRenderer.materials[1]);
+        //Debug.Log(fillMaterial.GetFloat("_PupilRadisu"));
         //fillMaterial.SetFloat("_PupilRadisu", 1);
-        //Vector2 _vec = _a.GetVector("_IrisPos");
         //Debug.Log(_vec);
+
+
     }
 
     public void MovementAnimation(Vector2 _dir = default)
@@ -34,7 +37,8 @@ public class Eye_Animation : MonoBehaviour
         CancelInvoke("RePlaceMovementAnimation");
         _dir *= 1.5f;
 
-        //material.GetFloat()
+        //fillMaterial.get
+        //InvokeRepeating("RePlaceMovementAnimation", 0, Time.deltaTime);
     }
 
     private void RePlaceMovementAnimation()
