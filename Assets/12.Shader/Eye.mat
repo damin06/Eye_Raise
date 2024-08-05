@@ -27,6 +27,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_e25563b18057467eb5717e0c4b45b444_Texture_1_Texture2D:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -42,11 +46,19 @@ Material:
     m_Ints: []
     m_Floats:
     - _CircleRadius: 1
+    - _IrisRadius: 0.55
+    - _PupilRadisu: 0.76
+    - _PupilRadius: 0.71
     m_Colors:
-    - _InSideColor: {r: 1, g: 1, b: 1, a: 0}
-    - _OutSideColor: {r: 0, g: 0, b: 0, a: 0}
-    - _PupilColor: {r: 1, g: 0, b: 0, a: 1}
-    - _Scale: {r: 1.7, g: 0.27, b: 2, a: 0}
+    - _EyelidScale: {r: 1.8, g: 2, b: 2, a: 0}
+    - _InSideColor: {r: 1, g: 1, b: 1, a: 1}
+    - _IrisColor: {r: 0, g: 0.043137256, b: 0.9215687, a: 1}
+    - _IrisPos: {r: 0, g: 0, b: 0, a: 0}
+    - _IrisRadiusVec: {r: 0.72, g: 1.147, b: 0, a: 0}
+    - _OutSideColor: {r: 0, g: 0, b: 0, a: 1}
+    - _PupilColor: {r: 0.043396115, g: 0.06827308, b: 1, a: 1}
+    - _Scale: {r: 1.89, g: 0.56, b: 1, a: 0}
+    - _Vector2: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &7737549946323566664
 MonoBehaviour:

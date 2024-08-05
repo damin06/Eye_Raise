@@ -18,14 +18,8 @@ public class SoftBodyPhysics : MonoBehaviour
         //if (!IsOwner)
         //    return;
         UpdateVerticies();
-        UpdateSpriteMask();
     }
 
-    private void UpdateSpriteMask()
-    {
-        //Sprite _newSprite = Sprite.Create(null, spriteRenderer.);
-        //Sprite _newSprite = spriteShape.sp;
-    }
 
     private void UpdateVerticies()
     {
