@@ -26,6 +26,11 @@ public class CirclePlacement : MonoBehaviour
             Vector3 _position = new Vector3(_x,_y, 0);
             _circles.GetChild(i).transform.localPosition = _position;
 
+            if(_circles.GetChild(i).TryGetComponent(out DistanceJoint2D _joint))
+            {
+                _joint.distance = transform.localScale.x;
+            }
+
             foreach(SpringJoint2D _spring in _circles.GetComponents<SpringJoint2D>())
             {
                 //_spring.distance = _angle * transform.localScale.x;
