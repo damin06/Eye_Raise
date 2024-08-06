@@ -33,11 +33,6 @@ public class Eye_Animation : MonoBehaviour
 
     private void Update()
     {
-        float x = Input.GetAxisRaw("Horizontal");
-        float y = Input.GetAxisRaw("Vertical");
-        Vector2 dir = new Vector2(x, y);
-
-        MovementAnimation(dir);
         RePlaceMovementAnimation();
 
         if (blinkDelay <= 0)
@@ -51,11 +46,19 @@ public class Eye_Animation : MonoBehaviour
         }
     }
 
-    public void MovementAnimation(Vector2 _dir)
+    public void InputMovementAnimation(Vector2 _dir)
     {
+        CancelInvoke();
         _dir *= pupilmoveDistance;
 
-        moveDir = _dir; 
+        moveDir = _dir;
+
+        Invoke("ResetMovementAnimation", 0.5f);
+    }
+
+    private void ResetMovementAnimation()
+    {
+        moveDir = Vector2.zero;
     }
 
     float curValue = 0;
