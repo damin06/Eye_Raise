@@ -46,6 +46,11 @@ public class Eye_Animation : MonoBehaviour
         }
     }
 
+    public void SetEyeColor(Color newColor)
+    {
+        fillMaterial.SetColor("_IrisColor", newColor);
+    }
+
     public void InputMovementAnimation(Vector2 _dir)
     {
         CancelInvoke();

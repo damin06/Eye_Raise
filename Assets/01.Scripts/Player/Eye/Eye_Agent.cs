@@ -8,10 +8,11 @@ public class Eye_Agent : NetworkBehaviour
 {
     [Header("Status")]
     [SerializeField] private float moveSpeed = 3f;
+    [SerializeField] private Color eyeColor = Color.black;
 
-    private Rigidbody2D rb;
-    private Eye_Animation eyeAnimation;
-    private Eye_Physics eyePhysics;
+    private Rigidbody2D rb = default;
+    private Eye_Animation eyeAnimation = default;
+    private Eye_Physics eyePhysics = default;
 
     private void Awake()
     {
@@ -20,12 +21,23 @@ public class Eye_Agent : NetworkBehaviour
         eyePhysics = GetComponent<Eye_Physics>();
     }
 
+    public void Init()
+    {
+        
+    }
+
     void Update()
     {
     }
 
     [Command]
-    public void Move(Vector2 dir)
+    public void SetEyeColor(Color newColor)
+    {
+        eyeAnimation.SetEyeColor(newColor);
+    }
+
+    [Command("AgentMove")]
+    public void MoveInput(Vector2 dir)
     {
         rb.velocity = dir.normalized * moveSpeed;
         eyeAnimation.InputMovementAnimation(dir);
