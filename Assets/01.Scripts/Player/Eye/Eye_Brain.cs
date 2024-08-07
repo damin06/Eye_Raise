@@ -7,6 +7,9 @@ using UnityEngine;
 
 public class Eye_Brain : NetworkBehaviour
 {
+    [SerializeField] private float moveSpeed = 3f;
+    [SerializeField] private InputReader inputReader;
+
     public static event Action<Eye_Brain> OnPlayerSpawned;
     public static event Action<Eye_Brain> OnPlayerDeSpawned;
 
@@ -17,6 +20,7 @@ public class Eye_Brain : NetworkBehaviour
 
     void Start()
     {
+        inputReader.MovementEvent += HandleMovement;
 
     }
 
@@ -33,6 +37,7 @@ public class Eye_Brain : NetworkBehaviour
         if (IsOwner)
         {
             eyeAgents.OnListChanged += HandleRankListChanged;
+            inputReader.MovementEvent += HandleMovement;
         }
 
         if (IsServer)
@@ -51,6 +56,7 @@ public class Eye_Brain : NetworkBehaviour
         if (IsOwner)
         {
             eyeAgents.OnListChanged -= HandleRankListChanged;
+            inputReader.MovementEvent -= HandleMovement;
         }
 
         if (IsServer)
@@ -115,4 +121,13 @@ public class Eye_Brain : NetworkBehaviour
         totalScore.Value = newScore;
     }
 
+    private void HandleMovement(Vector2 movementInput)
+    {
+        Eye_Agent[] _agents = transform.Find("Agents").GetComponentsInChildren<Eye_Agent>();
+        Debug.Log("input Move");
+        foreach (var _agent in _agents)
+        {
+            _agent.MoveInput(movementInput * moveSpeed);
+        }
+    }
 }

@@ -7,8 +7,9 @@ using UnityEngine;
 public class Eye_Agent : NetworkBehaviour
 {
     [Header("Status")]
-    [SerializeField] private float moveSpeed = 3f;
+    //[SerializeField] private float moveSpeed = 3f;
     [SerializeField] private Color eyeColor = Color.black;
+    private Vector2 movementInput = Vector2.zero;
 
     private Rigidbody2D rb = default;
     private Eye_Animation eyeAnimation = default;
@@ -26,8 +27,11 @@ public class Eye_Agent : NetworkBehaviour
         
     }
 
-    void Update()
+    private void Update()
     {
+        rb.velocity = movementInput;
+        eyeAnimation.InputMovementAnimation(movementInput);
+
     }
 
     [Command]
@@ -39,8 +43,7 @@ public class Eye_Agent : NetworkBehaviour
     [Command("AgentMove")]
     public void MoveInput(Vector2 dir)
     {
-        rb.velocity = dir.normalized * moveSpeed;
-        eyeAnimation.InputMovementAnimation(dir);
+        movementInput = dir;
     }
 
     [Command]

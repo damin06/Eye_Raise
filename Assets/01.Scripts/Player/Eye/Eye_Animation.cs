@@ -53,12 +53,12 @@ public class Eye_Animation : MonoBehaviour
 
     public void InputMovementAnimation(Vector2 _dir)
     {
-        CancelInvoke();
+        //CancelInvoke();
         _dir *= pupilmoveDistance;
 
         moveDir = _dir;
 
-        Invoke("ResetMovementAnimation", 0.5f);
+        //Invoke("ResetMovementAnimation", 0.5f);
     }
 
     private void ResetMovementAnimation()

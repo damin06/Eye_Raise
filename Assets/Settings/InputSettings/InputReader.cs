@@ -6,30 +6,34 @@ using UnityEngine.InputSystem;
 public class InputReader : ScriptableObject, Controls.IPlayerActions 
 {
     public event Action<Vector2> MovementEvent;
+    public event Action<Vector2> AimPositionEvent;
+    public event Action<float> MouseScrollEvent;
+    public event Action SplitEvent;
+    public event Action EmissionEvent;
     public event Action ShootEvent;
-    public Vector2 AimPosition { get; private set; }
-    private Controls _controls;
+    private Controls controls;
 
     private void OnEnable()
     {
-        if (_controls == null)
+        if (controls == null)
         {
-            _controls = new Controls();
-            _controls.Player.SetCallbacks(this);
+            controls = new Controls();
+            controls.Player.SetCallbacks(this);
         }
         
-        _controls.Player.Enable();
+        controls.Player.Enable();
     }
 
     public void OnMovement(InputAction.CallbackContext context)
     {
-        Vector2 value = context.ReadValue<Vector2>();
-        MovementEvent?.Invoke(value);
+        Vector2 _value = context.ReadValue<Vector2>();
+        MovementEvent?.Invoke(_value);
     }
 
     public void OnAim(InputAction.CallbackContext context)
     {
-        AimPosition = context.ReadValue<Vector2>();
+        Vector2 _value = context.ReadValue<Vector2>();
+        AimPositionEvent?.Invoke(_value);
     }
 
     public void OnShoot(InputAction.CallbackContext context)
@@ -38,5 +42,27 @@ public class InputReader : ScriptableObject, Controls.IPlayerActions
         {
             ShootEvent?.Invoke();
         }
+    }
+
+    public void OnSplit(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            SplitEvent?.Invoke();
+        }
+    }
+
+    public void OnEmission(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            EmissionEvent?.Invoke();
+        };
+    }
+
+    public void OnMouseScroll(InputAction.CallbackContext context)
+    {
+        float _value = context.ReadValue<float>();
+        MouseScrollEvent?.Invoke(_value);
     }
 }
