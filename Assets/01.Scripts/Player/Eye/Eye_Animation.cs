@@ -84,11 +84,6 @@ public class Eye_Animation : MonoBehaviour
         
     }
 
-    private void MovementAnimtation()
-    {
-
-    }
-
     private void RePlaceMovementAnimation()
     {
         Vector2 irisPos = (Vector2)fillMaterial.GetVector("_IrisPos");
