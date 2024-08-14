@@ -53,12 +53,9 @@ public class Eye_Animation : MonoBehaviour
 
     public void InputMovementAnimation(Vector2 _dir)
     {
-        //CancelInvoke();
         _dir *= pupilmoveDistance;
 
         moveDir = _dir;
-
-        //Invoke("ResetMovementAnimation", 0.5f);
     }
 
     private void ResetMovementAnimation()
@@ -98,7 +95,7 @@ public class Eye_Animation : MonoBehaviour
 
         fillMaterial.SetVector("_IrisPos", learp);
 
-        if ((learp - moveDir).magnitude < 0.001f)
+        if ((learp - moveDir).magnitude < 0.0001f)
         {
             if (moveDir != Vector2.zero)
             {
@@ -106,7 +103,7 @@ public class Eye_Animation : MonoBehaviour
             }
             else
             {
-                fillMaterial.SetVector("_IrisPos", Vector2.zero);
+                //fillMaterial.SetVector("_IrisPos", Vector2.zero);
             }
 
         }

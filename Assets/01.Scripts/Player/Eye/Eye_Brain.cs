@@ -1,12 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 public class Eye_Brain : NetworkBehaviour
 {
+    [SerializeField] private GameObject eyeAgentObj;
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private InputReader inputReader;
 
@@ -16,12 +16,11 @@ public class Eye_Brain : NetworkBehaviour
     private NetworkVariable<int> totalScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<FixedString32Bytes> username = new NetworkVariable<FixedString32Bytes>();
     private NetworkVariable<Color> eyeColor = new NetworkVariable<Color>();
-    private NetworkList<EyeEntityState> eyeAgents = new NetworkList<EyeEntityState>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-
-    void Start()
+    private NetworkList<EyeEntityState> eyeAgents;
+         //= new NetworkList<EyeEntityState>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private void Awake()
     {
-        inputReader.MovementEvent += HandleMovement;
-
+        eyeAgents = new NetworkList<EyeEntityState>();
     }
 
     void Update()
@@ -36,12 +35,18 @@ public class Eye_Brain : NetworkBehaviour
 
         if (IsOwner)
         {
-            eyeAgents.OnListChanged += HandleRankListChanged;
             inputReader.MovementEvent += HandleMovement;
+        }
+
+        if (IsClient)
+        {
+            Debug.Log("Client!");
+            eyeAgents.OnListChanged += HandleRankListChanged;
         }
 
         if (IsServer)
         {
+            CreateAgent();
             OnPlayerSpawned?.Invoke(this);
 
             totalScore.OnValueChanged += (int previousValue, int newValue) =>
@@ -49,14 +54,41 @@ public class Eye_Brain : NetworkBehaviour
                 RankBoardBehaviour.Instance.onUserScoreChanged?.Invoke(OwnerClientId, newValue);
             };
         }
+
+    }
+
+    private void CreateAgent()
+    {
+        GameObject _newAgent = Instantiate(eyeAgentObj, transform.Find("Agents"));
+        _newAgent.transform.position = Vector3.zero;
+
+
+        if (_newAgent.TryGetComponent(out NetworkObject _network))
+        {
+            _network.Spawn();
+            _network.TrySetParent(transform);
+            _network.ChangeOwnership(OwnerClientId);
+
+
+            eyeAgents.Add(new EyeEntityState
+            {
+                networkObjectId = _network.NetworkObjectId,
+                score = 0
+            });
+        }
+
     }
 
     public override void OnNetworkDespawn()
     {
         if (IsOwner)
         {
-            eyeAgents.OnListChanged -= HandleRankListChanged;
             inputReader.MovementEvent -= HandleMovement;
+        }
+
+        if (IsClient)
+        {
+            eyeAgents.OnListChanged -= HandleRankListChanged;
         }
 
         if (IsServer)
@@ -99,10 +131,10 @@ public class Eye_Brain : NetworkBehaviour
     {
         switch (evt.Type)
         {
+            case NetworkListEvent<EyeEntityState>.EventType.Add:
             case NetworkListEvent<EyeEntityState>.EventType.Clear:
             case NetworkListEvent<EyeEntityState>.EventType.RemoveAt:
             case NetworkListEvent<EyeEntityState>.EventType.Remove:
-            case NetworkListEvent<EyeEntityState>.EventType.Add:
             case NetworkListEvent<EyeEntityState>.EventType.Value:
                 UpdateTotalScore();
                 break;
@@ -121,9 +153,10 @@ public class Eye_Brain : NetworkBehaviour
         totalScore.Value = newScore;
     }
 
+
     private void HandleMovement(Vector2 movementInput)
     {
-        Eye_Agent[] _agents = transform.Find("Agents").GetComponentsInChildren<Eye_Agent>();
+        Eye_Agent[] _agents = transform.GetComponentsInChildren<Eye_Agent>();
         Debug.Log("input Move");
         foreach (var _agent in _agents)
         {

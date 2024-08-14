@@ -1,7 +1,6 @@
 using QFSW.QC;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,7 +9,8 @@ public class Eye_Agent : NetworkBehaviour
     [Header("Status")]
     //[SerializeField] private float moveSpeed = 3f;
     [SerializeField] private Color eyeColor = Color.black;
-    private Vector2 movementInput = Vector2.zero;
+    //private Vector2 movementInput = Vector2.zero;
+    private NetworkVariable<Vector2> movementInput = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private Rigidbody2D rb = default;
     private Eye_Animation eyeAnimation = default;
@@ -28,11 +28,12 @@ public class Eye_Agent : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         score.OnValueChanged += HandleScoreChanged;
+        SetScale(1);
     }
 
-    private void HandleScoreChanged(int previousValue, int newValue)
+    public override void OnNetworkDespawn()
     {
-        SetScale(newValue / 10);
+        score.OnValueChanged -= HandleScoreChanged;
     }
 
     public void Init()
@@ -42,9 +43,15 @@ public class Eye_Agent : NetworkBehaviour
 
     private void Update()
     {
-        rb.velocity = movementInput;
-        eyeAnimation.InputMovementAnimation(movementInput);
+        if (IsOwner)
+        {
+            rb.velocity = movementInput.Value;
+        }
 
+        if (IsClient)
+        {
+            eyeAnimation.InputMovementAnimation(movementInput.Value.normalized);
+        }
     }
 
     [Command]
@@ -56,7 +63,7 @@ public class Eye_Agent : NetworkBehaviour
     [Command("AgentMove")]
     public void MoveInput(Vector2 dir)
     {
-        movementInput = dir;
+        movementInput.Value = dir;
     }
 
     [Command]
@@ -65,5 +72,10 @@ public class Eye_Agent : NetworkBehaviour
         newScale = Mathf.Clamp(newScale, 1, int.MaxValue);
         transform.localScale = new Vector2(newScale, newScale);
         eyePhysics.RePlaceCircles();
+    }
+
+    private void HandleScoreChanged(int previousValue, int newValue)
+    {
+        SetScale(newValue / 10);
     }
 }
