@@ -6,8 +6,6 @@ public class RespawnManager : NetworkBehaviour
 {
     public override void OnNetworkSpawn()
     {
-        // Player에 있는  OnPlayerDespawn을 구독하고
-        // 또 구독해제도 해야해. 누가? 서버만 해야해
         if (!IsServer) return;
         Player.OnPlayerDeSpawned += HandlePlayerDeSpawn;
     }

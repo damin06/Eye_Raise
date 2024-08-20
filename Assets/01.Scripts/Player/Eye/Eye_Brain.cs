@@ -1,3 +1,4 @@
+using Cinemachine;
 using System;
 using Unity.Collections;
 using Unity.Netcode;
@@ -36,6 +37,11 @@ public class Eye_Brain : NetworkBehaviour
         if (IsOwner)
         {
             inputReader.MovementEvent += HandleMovement;
+
+            if(transform.Find("Virtual Camera").TryGetComponent(out CinemachineVirtualCamera _camera))
+            {
+                _camera.Priority = 15;
+            }
         }
 
         if (IsClient)
@@ -57,7 +63,7 @@ public class Eye_Brain : NetworkBehaviour
 
     }
 
-    private void CreateAgent()
+    private void CreateAgent(int socre = 100)
     {
         GameObject _newAgent = Instantiate(eyeAgentObj, transform.Find("Agents"));
         _newAgent.transform.position = Vector3.zero;
@@ -67,13 +73,19 @@ public class Eye_Brain : NetworkBehaviour
         {
             _network.Spawn();
             _network.TrySetParent(transform);
+
+            if(_newAgent.TryGetComponent(out Eye_Agent _agent))
+            {
+                _agent.score.Value = socre;
+            }
+
             _network.ChangeOwnership(OwnerClientId);
 
 
             eyeAgents.Add(new EyeEntityState
             {
                 networkObjectId = _network.NetworkObjectId,
-                score = 0
+                score = socre
             });
         }
 

@@ -1,6 +1,5 @@
 using QFSW.QC;
 using System;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,7 +15,7 @@ public class Eye_Agent : NetworkBehaviour
     private Eye_Animation eyeAnimation = default;
     private Eye_Physics eyePhysics = default;
 
-    private NetworkVariable<int> score = new NetworkVariable<int>();
+    public NetworkVariable<int> score = new NetworkVariable<int>();
 
     private void Awake()
     {
@@ -27,13 +26,18 @@ public class Eye_Agent : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        score.OnValueChanged += HandleScoreChanged;
-        SetScale(1);
+        if (IsOwner)
+        {
+            score.OnValueChanged += HandleScoreChanged;
+        }
     }
 
     public override void OnNetworkDespawn()
     {
-        score.OnValueChanged -= HandleScoreChanged;
+        if (IsOwner) 
+        {
+            score.OnValueChanged -= HandleScoreChanged;
+        }
     }
 
     public void Init()
@@ -76,6 +80,24 @@ public class Eye_Agent : NetworkBehaviour
 
     private void HandleScoreChanged(int previousValue, int newValue)
     {
-        SetScale(newValue / 10);
+        SetScale(newValue / 100);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (!IsServer)
+            return;
+
+        if(collision.TryGetComponent(out Point _point))
+        {
+            score.Value += _point.point.Value;
+
+            ScoreManager.Instance.ReturnPoint(_point.GetComponent<NetworkObject>());
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        
     }
 }
