@@ -39,12 +39,18 @@ public class NetworkObjectPool : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        InitializePool();
+        if (IsServer)
+        {
+            InitializePool();
+        }
     }
 
     public override void OnNetworkDespawn()
     {
-        ClearPool();
+        if (IsServer)
+        {
+            ClearPool();
+        }
     }
 
     public void OnValidate()
@@ -155,10 +161,11 @@ public class NetworkObjectPool : NetworkBehaviour
     private GameObject CreateInstance(GameObject prefab)
     {
         var _object = Instantiate(prefab);
-        _object.name.Replace("(Clone)", "");
+
         if (_object.TryGetComponent(out NetworkObject _networkObj))
         {
             _networkObj.Spawn();
+            _networkObj.name = _networkObj.name.Replace("(Clone)", "");
             //_networkObj.TrySetParent(NetworkObject);
         }
 

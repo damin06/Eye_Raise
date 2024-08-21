@@ -49,18 +49,23 @@ public class ScoreManager : NetworkBehaviour
                 (
                     Random.Range(minSpawnPos.x, maxSpawnPos.x),
                     Random.Range(minSpawnPos.y, maxSpawnPos.y)
-                ));
+                ),
+                    Random.Range(0.55f, 0.75f),
+                    Random.ColorHSV(0f, 1f, 0.9f, 1f, 0.9f, 1f)
+                );
         }
     }
 
-    public void SpawnPoint(Vector2 position)
+    public void SpawnPoint(Vector2 position, float scale, Color color)
     {
         var _newPoint = NetworkObjectPool.Instance.GetNetworkObject("Point", position, Quaternion.identity);
 
         if(_newPoint.TryGetComponent(out Point _point))
         {
             points.Add(_point);
-            _point.point.Value = Random.Range(1, 6);    
+            _point.color.Value = color;
+            _point.point.Value = Random.Range(1, 6);
+            _point.transform.localScale = new Vector2(scale, scale); 
         }
     }
 
@@ -83,7 +88,7 @@ public class ScoreManager : NetworkBehaviour
             points.Remove(_point);
         }
 
-        Destroy(point);
+        NetworkObjectPool.Instance.ReturnNetworkObject(point);
     }
 }
 

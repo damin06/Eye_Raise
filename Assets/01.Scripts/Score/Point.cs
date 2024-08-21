@@ -7,12 +7,13 @@ public class Point : NetworkBehaviour
 {
     public NetworkVariable<int> point = new NetworkVariable<int>(1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<bool> isUserPoint = new NetworkVariable<bool>();
-    public NetworkVariable<Color> color = new NetworkVariable<Color>(Random.ColorHSV());
+    public NetworkVariable<Color> color = new NetworkVariable<Color>(Color.blue);
 
     public override void OnNetworkSpawn()
     {
         if (IsClient)
         {
+            HandleColorChanged(color.Value, color.Value);
             color.OnValueChanged += HandleColorChanged;
         }
 
@@ -24,15 +25,15 @@ public class Point : NetworkBehaviour
 
     private void HandlePointOwnerChanged(bool previousValue, bool newValue)
     {
-        if (newValue)
-        {
-            transform.localScale = Vector3.one;
-        }
-        else
-        {
-            float newScale = Random.Range(0.6f, 0.75f);
-            transform.localScale = new Vector3(newScale, newScale, newScale);
-        }
+        //if (newValue)
+        //{
+        //    transform.localScale = Vector3.one;
+        //}
+        //else
+        //{
+        //    float newScale = Random.Range(0.6f, 0.75f);
+        //    transform.localScale = new Vector3(newScale, newScale, newScale);
+        //}
     }
 
     private void HandleColorChanged(Color previousValue, Color newValue)
@@ -49,10 +50,10 @@ public class Point : NetworkBehaviour
         //point.Value = Random.Range(1, 6);
 
 
-        if (IsServer)
-        {
-            HandlePointOwnerChanged(isUserPoint.Value, isUserPoint.Value);
-        }
+        //if (IsServer)
+        //{
+        //    HandlePointOwnerChanged(isUserPoint.Value, isUserPoint.Value);
+        //}
     }
 
     //public void SetUserPoint(int newPoint, Color newColor)

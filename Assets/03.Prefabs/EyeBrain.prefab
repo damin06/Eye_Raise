@@ -145,7 +145,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2462342682
+  GlobalObjectIdHash: 2807922679
   InScenePlacedSourceGlobalObjectIdHash: 3573807398
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   eyeAgentObj: {fileID: 8361397804778735486, guid: b66fc55b8ac34434f958cac101db2ded, type: 3}
-  moveSpeed: 15
+  moveSpeed: 23
   inputReader: {fileID: 11400000, guid: bff4493bc1a5e854f8857614fceb89bd, type: 2}
 --- !u!1 &7481640557372195936
 GameObject:

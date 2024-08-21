@@ -47,14 +47,17 @@ public class Eye_Agent : NetworkBehaviour
 
     private void Update()
     {
-        if (IsOwner)
-        {
-            rb.velocity = movementInput.Value;
-        }
-
         if (IsClient)
         {
             eyeAnimation.InputMovementAnimation(movementInput.Value.normalized);
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (IsOwner)
+        {
+            rb.velocity = movementInput.Value;
         }
     }
 
@@ -71,16 +74,19 @@ public class Eye_Agent : NetworkBehaviour
     }
 
     [Command]
-    public void SetScale(int newScale)
+    public void SetScale(float newScale)
     {
-        newScale = Mathf.Clamp(newScale, 1, int.MaxValue);
-        transform.localScale = new Vector2(newScale, newScale);
+        //newScale = Mathf.Clamp(newScale, 1, int.MaxValue);
+        Debug.Log($"NewScale {newScale}");
+        
+        transform.localScale = new Vector3(newScale, newScale, newScale);
         eyePhysics.RePlaceCircles();
     }
 
     private void HandleScoreChanged(int previousValue, int newValue)
     {
-        SetScale(newValue / 100);
+        float newScale = (float)((double)newValue / (double)100);
+        SetScale(newScale);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -90,6 +96,7 @@ public class Eye_Agent : NetworkBehaviour
 
         if(collision.TryGetComponent(out Point _point))
         {
+            Debug.Log(_point.name + "Hit!" + _point.point.Value.ToString());
             score.Value += _point.point.Value;
 
             ScoreManager.Instance.ReturnPoint(_point.GetComponent<NetworkObject>());
