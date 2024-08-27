@@ -71,7 +71,7 @@ public class Eye_Brain : NetworkBehaviour
 
         if (_newAgent.TryGetComponent(out NetworkObject _network))
         {
-            _network.Spawn();
+            _network.SpawnAsPlayerObject(OwnerClientId);
             _network.TrySetParent(transform);
 
             if(_newAgent.TryGetComponent(out Eye_Agent _agent))
@@ -79,7 +79,7 @@ public class Eye_Brain : NetworkBehaviour
                 _agent.score.Value = socre;
             }
 
-            _network.ChangeOwnership(OwnerClientId);
+            //_network.ChangeOwnership(OwnerClientId);
 
 
             eyeAgents.Add(new EyeEntityState

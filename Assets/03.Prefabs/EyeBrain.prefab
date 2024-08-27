@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   eyeAgentObj: {fileID: 8361397804778735486, guid: b66fc55b8ac34434f958cac101db2ded, type: 3}
-  moveSpeed: 23
+  moveSpeed: 40
   inputReader: {fileID: 11400000, guid: bff4493bc1a5e854f8857614fceb89bd, type: 2}
 --- !u!1 &7481640557372195936
 GameObject:
