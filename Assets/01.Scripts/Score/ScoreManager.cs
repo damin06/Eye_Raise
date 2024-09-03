@@ -86,10 +86,12 @@ public class ScoreManager : NetworkBehaviour
         if(point.TryGetComponent(out Point _point))
         {
             points.Remove(_point);
+            _point.ActiveClientRpc(false);
         }
 
         NetworkObjectPool.Instance.ReturnNetworkObject(point);
     }
+
 }
 
 #if (UNITY_EDITOR) 

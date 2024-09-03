@@ -12,9 +12,9 @@ public class AutoDespawnOnServer : NetworkBehaviour
         Invoke("OnDestroy", lifeTime); 
     }
 
-    private void OnDestroy()
-    {
-        GetComponent<NetworkObject>().Despawn(true);
-        Destroy(gameObject);
-    }
+    //private void OnDestroy()
+    //{
+    //    GetComponent<NetworkObject>().Despawn(true);
+    //    Destroy(gameObject);
+    //}
 }

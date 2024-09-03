@@ -1,5 +1,7 @@
 using Cinemachine;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Components;
@@ -17,16 +19,14 @@ public class Eye_Brain : NetworkBehaviour
     private NetworkVariable<int> totalScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<FixedString32Bytes> username = new NetworkVariable<FixedString32Bytes>();
     private NetworkVariable<Color> eyeColor = new NetworkVariable<Color>();
-    private NetworkList<EyeEntityState> eyeAgents;
-         //= new NetworkList<EyeEntityState>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkList<EyeEntityState> eyeAgents = new NetworkList<EyeEntityState>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkObject mainAgent;
+
+    [SerializeField] private CinemachineVirtualCamera cam;
+
     private void Awake()
     {
-        eyeAgents = new NetworkList<EyeEntityState>();
-    }
-
-    void Update()
-    {
-        
+ 
     }
 
     public override void OnNetworkSpawn()
@@ -34,61 +34,25 @@ public class Eye_Brain : NetworkBehaviour
         username.OnValueChanged += HandleNameChanged;
         eyeColor.OnValueChanged += HandleEyeColorChanged;
 
-        if (IsOwner)
-        {
-            inputReader.MovementEvent += HandleMovement;
-
-            if(transform.Find("Virtual Camera").TryGetComponent(out CinemachineVirtualCamera _camera))
-            {
-                _camera.Priority = 15;
-            }
-        }
-
-        if (IsClient)
-        {
-            Debug.Log("Client!");
-            eyeAgents.OnListChanged += HandleRankListChanged;
-        }
-
         if (IsServer)
         {
             CreateAgent();
             OnPlayerSpawned?.Invoke(this);
 
-            totalScore.OnValueChanged += (int previousValue, int newValue) =>
-            {
-                RankBoardBehaviour.Instance.onUserScoreChanged?.Invoke(OwnerClientId, newValue);
-            };
+            totalScore.OnValueChanged += HandleTotalScoreChanged;
         }
 
-    }
-
-    private void CreateAgent(int socre = 100)
-    {
-        GameObject _newAgent = Instantiate(eyeAgentObj, transform.Find("Agents"));
-        _newAgent.transform.position = Vector3.zero;
-
-
-        if (_newAgent.TryGetComponent(out NetworkObject _network))
+        if (IsOwner)
         {
-            _network.SpawnAsPlayerObject(OwnerClientId);
-            _network.TrySetParent(transform);
-
-            if(_newAgent.TryGetComponent(out Eye_Agent _agent))
-            {
-                _agent.score.Value = socre;
-            }
-
-            //_network.ChangeOwnership(OwnerClientId);
+            //cam = transform.Find("Virtual Camera").GetComponent<CinemachineVirtualCamera>();
+            cam.Priority = 15;
+            inputReader.MovementEvent += HandleMovement;
+            eyeAgents.OnListChanged += HandleRankListChanged;
 
 
-            eyeAgents.Add(new EyeEntityState
-            {
-                networkObjectId = _network.NetworkObjectId,
-                score = socre
-            });
+            //mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[eyeAgents[0].networkObjectId];
+            //cam.Follow = mainAgent.transform;
         }
-
     }
 
     public override void OnNetworkDespawn()
@@ -96,10 +60,6 @@ public class Eye_Brain : NetworkBehaviour
         if (IsOwner)
         {
             inputReader.MovementEvent -= HandleMovement;
-        }
-
-        if (IsClient)
-        {
             eyeAgents.OnListChanged -= HandleRankListChanged;
         }
 
@@ -107,9 +67,51 @@ public class Eye_Brain : NetworkBehaviour
         {
             OnPlayerDeSpawned?.Invoke(this);
 
-            totalScore.OnValueChanged -= (int previousValue, int newValue) =>
+            totalScore.OnValueChanged -= HandleTotalScoreChanged;
+        }
+    }
+
+    private void HandleTotalScoreChanged(int previousValue, int newValue)
+    {
+        RankBoardBehaviour.Instance.onUserScoreChanged?.Invoke(OwnerClientId, newValue);
+    }
+
+    private void CreateAgent(int socre = 100)
+    {
+        GameObject _newAgent = Instantiate(eyeAgentObj, transform.Find("Agents"));
+        _newAgent.transform.position = Vector3.zero;
+
+        if (_newAgent.TryGetComponent(out NetworkObject _network))
+        {
+            _network.SpawnAsPlayerObject(OwnerClientId);
+            _network.TrySetParent(transform);
+      
+            eyeAgents.Add(new EyeEntityState
             {
-                RankBoardBehaviour.Instance.onUserScoreChanged?.Invoke(OwnerClientId, newValue);
+                networkObjectId = _network.NetworkObjectId,
+                score = socre
+            });
+
+            if(_newAgent.TryGetComponent(out Eye_Agent _agent))
+            {
+                _agent.score.Value = socre;
+                _agent.Init();
+            }
+        }
+
+    }
+
+    public void ModifySocre(ulong networkObjectId, int newScore)
+    {
+        for(int i = 0; i < eyeAgents.Count; i++)
+        {
+            if (eyeAgents[i].networkObjectId != NetworkObjectId)
+                continue;
+
+            eyeAgents[i] = new EyeEntityState
+            {
+                networkObjectId = networkObjectId,
+                score = newScore
             };
         }
     }
@@ -129,6 +131,7 @@ public class Eye_Brain : NetworkBehaviour
         return username.Value;
     }
 
+
     private void HandleNameChanged(FixedString32Bytes prev, FixedString32Bytes newValue)
     {
 
@@ -141,21 +144,24 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleRankListChanged(NetworkListEvent<EyeEntityState> evt)
     {
-        switch (evt.Type)
-        {
-            case NetworkListEvent<EyeEntityState>.EventType.Add:
-            case NetworkListEvent<EyeEntityState>.EventType.Clear:
-            case NetworkListEvent<EyeEntityState>.EventType.RemoveAt:
-            case NetworkListEvent<EyeEntityState>.EventType.Remove:
-            case NetworkListEvent<EyeEntityState>.EventType.Value:
-                UpdateTotalScore();
-                break;
-        }
+        UpdateTotalScore(evt.Value);
+
+        //switch (evt.Type)
+        //{
+        //    case NetworkListEvent<EyeEntityState>.EventType.Add:
+        //    case NetworkListEvent<EyeEntityState>.EventType.Clear:
+        //    case NetworkListEvent<EyeEntityState>.EventType.RemoveAt:
+        //    case NetworkListEvent<EyeEntityState>.EventType.Remove:
+        //    case NetworkListEvent<EyeEntityState>.EventType.Value:
+        //        //UpdateTotalScore(evt.Value);
+        //        break;
+        //}
     }
 
-    public void UpdateTotalScore()
+    public void UpdateTotalScore(EyeEntityState value)
     {
         int newScore = 0;
+        Debug.Log("Score Updated!");
 
         foreach (var _agents in eyeAgents)
         {
@@ -163,8 +169,42 @@ public class Eye_Brain : NetworkBehaviour
         }
 
         totalScore.Value = newScore;
+
+        if(mainAgent == null)
+        {
+            mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
+            cam.Follow = mainAgent.transform;
+            
+            if(mainAgent.TryGetComponent(out Eye_Agent _agent))
+            {
+                _agent.score.OnValueChanged += HandleMainAgentScoreChanged;
+            }
+        }
+        else
+        {
+            if(mainAgent.gameObject.TryGetComponent(out Eye_Agent _agent) && mainAgent.NetworkObjectId != value.networkObjectId)
+            {
+                if(_agent.score.Value < value.score)
+                {
+                    if (mainAgent.TryGetComponent(out Eye_Agent _prvAgent))
+                    {
+                        _prvAgent.score.OnValueChanged -= HandleMainAgentScoreChanged;
+                    }
+
+                    mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
+                    cam.Follow = mainAgent.transform;
+
+                    _agent.score.OnValueChanged += HandleMainAgentScoreChanged;
+                }
+            }
+        }
+
     }
 
+    private void HandleMainAgentScoreChanged(int previousValue, int newValue)
+    {
+        cam.m_Lens.OrthographicSize = (float)((double)newValue / (double)100) * 10;
+    }
 
     private void HandleMovement(Vector2 movementInput)
     {

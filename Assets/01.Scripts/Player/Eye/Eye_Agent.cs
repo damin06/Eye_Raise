@@ -2,13 +2,12 @@ using QFSW.QC;
 using System;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class Eye_Agent : NetworkBehaviour
 {
     [Header("Status")]
-    //[SerializeField] private float moveSpeed = 3f;
     [SerializeField] private Color eyeColor = Color.black;
-    //private Vector2 movementInput = Vector2.zero;
     private NetworkVariable<Vector2> movementInput = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private Rigidbody2D rb = default;
@@ -16,6 +15,7 @@ public class Eye_Agent : NetworkBehaviour
     private Eye_Physics eyePhysics = default;
 
     public NetworkVariable<int> score = new NetworkVariable<int>();
+    private Eye_Brain eyeBrain = null;
 
     private void Awake()
     {
@@ -26,23 +26,19 @@ public class Eye_Agent : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsOwner)
-        {
-            score.OnValueChanged += HandleScoreChanged;
-        }
+        Debug.Log($"is Brain is null? {eyeBrain == null}");
+
+        score.OnValueChanged += HandleScoreChanged;
     }
 
     public override void OnNetworkDespawn()
     {
-        if (IsOwner) 
-        {
-            score.OnValueChanged -= HandleScoreChanged;
-        }
+        score.OnValueChanged -= HandleScoreChanged;
     }
 
     public void Init()
     {
-        
+        eyeBrain = transform.GetComponentInParent<Eye_Brain>();
     }
 
     private void Update()
@@ -77,7 +73,7 @@ public class Eye_Agent : NetworkBehaviour
     public void SetScale(float newScale)
     {
         //newScale = Mathf.Clamp(newScale, 1, int.MaxValue);
-        Debug.Log($"NewScale {newScale}");
+        //Debug.Log($"NewScale {newScale}");
         
         transform.localScale = new Vector3(newScale, newScale, newScale);
         eyePhysics.RePlaceCircles();
@@ -85,8 +81,21 @@ public class Eye_Agent : NetworkBehaviour
 
     private void HandleScoreChanged(int previousValue, int newValue)
     {
-        float newScale = (float)((double)newValue / (double)100);
-        SetScale(newScale);
+        if (IsOwner)
+        {
+            float newScale = (float)((double)newValue / (double)100);
+            SetScale(newScale);
+        }
+
+        if (IsServer)
+        {
+            if(eyeBrain == null)
+            {
+                eyeBrain = transform.GetComponentInParent<Eye_Brain>();
+            }
+
+            eyeBrain.ModifySocre(NetworkObjectId, newValue);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -99,7 +108,7 @@ public class Eye_Agent : NetworkBehaviour
             Debug.Log(_point.name + "Hit!" + _point.point.Value.ToString());
             score.Value += _point.point.Value;
 
-            ScoreManager.Instance.ReturnPoint(_point.GetComponent<NetworkObject>());
+            ScoreManager.Instance.ReturnPoint(collision.GetComponent<NetworkObject>());
         }
     }
 

@@ -44,6 +44,12 @@ public class Point : NetworkBehaviour
         }
     }
 
+    [ClientRpc]
+    public void ActiveClientRpc(bool active)
+    {
+        gameObject.SetActive(active);
+    }
+
     public void OnEnable()
     {
         //color.Value = Random.ColorHSV(0f, 1f, 0.9f, 1f, 0.9f, 1f);
