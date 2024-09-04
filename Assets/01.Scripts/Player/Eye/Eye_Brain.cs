@@ -24,11 +24,6 @@ public class Eye_Brain : NetworkBehaviour
 
     [SerializeField] private CinemachineVirtualCamera cam;
 
-    private void Awake()
-    {
- 
-    }
-
     public override void OnNetworkSpawn()
     {
         username.OnValueChanged += HandleNameChanged;
@@ -44,11 +39,20 @@ public class Eye_Brain : NetworkBehaviour
 
         if (IsOwner)
         {
+            Debug.Log("Owner Spawned!");
             //cam = transform.Find("Virtual Camera").GetComponent<CinemachineVirtualCamera>();
             cam.Priority = 15;
             inputReader.MovementEvent += HandleMovement;
-            eyeAgents.OnListChanged += HandleRankListChanged;
 
+            eyeAgents.OnListChanged += HandleRankListChanged;
+            foreach(var entity in eyeAgents)
+            {
+                HandleRankListChanged(new NetworkListEvent<EyeEntityState>
+                {
+                    Value = entity,
+                    Type = NetworkListEvent<EyeEntityState>.EventType.Add,
+                });
+            }
 
             //mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[eyeAgents[0].networkObjectId];
             //cam.Follow = mainAgent.transform;
@@ -76,16 +80,22 @@ public class Eye_Brain : NetworkBehaviour
         RankBoardBehaviour.Instance.onUserScoreChanged?.Invoke(OwnerClientId, newValue);
     }
 
-    private void CreateAgent(int socre = 100)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="socre"></param>
+    /// <param name="pos">pos must be localPosition</param>
+    private void CreateAgent(int socre = 100, Vector3 pos = default)
     {
-        GameObject _newAgent = Instantiate(eyeAgentObj, transform.Find("Agents"));
-        _newAgent.transform.position = Vector3.zero;
+        GameObject _newAgent = Instantiate(eyeAgentObj);
+        //_newAgent.transform.position = Vector3.zero;
 
         if (_newAgent.TryGetComponent(out NetworkObject _network))
         {
             _network.SpawnAsPlayerObject(OwnerClientId);
             _network.TrySetParent(transform);
-      
+            _newAgent.transform.localPosition = pos;
+
             eyeAgents.Add(new EyeEntityState
             {
                 networkObjectId = _network.NetworkObjectId,
@@ -98,11 +108,11 @@ public class Eye_Brain : NetworkBehaviour
                 _agent.Init();
             }
         }
-
     }
 
     public void ModifySocre(ulong networkObjectId, int newScore)
     {
+        Debug.Log("ModifyScore");
         for(int i = 0; i < eyeAgents.Count; i++)
         {
             if (eyeAgents[i].networkObjectId != NetworkObjectId)
@@ -144,6 +154,7 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleRankListChanged(NetworkListEvent<EyeEntityState> evt)
     {
+        Debug.Log("Handle List Changed!");
         UpdateTotalScore(evt.Value);
 
         //switch (evt.Type)
