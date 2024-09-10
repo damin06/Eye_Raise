@@ -12,7 +12,7 @@ public class Eye_Brain : NetworkBehaviour
     [SerializeField] private GameObject eyeAgentObj;
     [SerializeField] private InputReader inputReader;
     [SerializeField] private float moveSpeed = 3f;
-    [SerializeField] private int minSplitPoint = 200;
+    [SerializeField] private int minSplitPoint = 100;
     private Vector2 aimPos;
 
     public static event Action<Eye_Brain> OnPlayerSpawned;
@@ -22,7 +22,7 @@ public class Eye_Brain : NetworkBehaviour
     private NetworkVariable<FixedString32Bytes> username = new NetworkVariable<FixedString32Bytes>();
     private NetworkVariable<Color> eyeColor = new NetworkVariable<Color>();
     private NetworkList<EyeEntityState> eyeAgents = new NetworkList<EyeEntityState>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    private NetworkObject mainAgent;
+    public NetworkObject mainAgent { private set; get; }
 
     [SerializeField] private CinemachineVirtualCamera cam;
 
@@ -119,8 +119,8 @@ public class Eye_Brain : NetworkBehaviour
         if (_newAgent.TryGetComponent(out NetworkObject _network))
         {
             _network.SpawnAsPlayerObject(OwnerClientId);
+            _newAgent.transform.position = pos;
             _network.TrySetParent(transform);
-            _newAgent.transform.localPosition = pos;
             networkObjectId = _network.NetworkObjectId;
 
             eyeAgents.Add(new EyeEntityState
@@ -157,17 +157,27 @@ public class Eye_Brain : NetworkBehaviour
                 var _newAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_newAgentObjId];
                 if(_newAgent.TryGetComponent(out Rigidbody2D _rb))
                 {
-                    _rb.AddForce(_pos * 3, ForceMode2D.Impulse);
+                    _rb.AddForce(_pos * 1.5f, ForceMode2D.Impulse);
+                    Debug.Log("AddForc" + _pos);
+
+                    //if(_newAgent.TryGetComponent(out DistanceJoint2D _joint))
+                    //{
+                    //    _joint.enabled = true;
+                    //    _joint.connectedBody = _rb;
+                    //}
                 }
+
             }
         }
     }
 
     public void ModifySocre(ulong networkObjectId, int newScore)
     {
-        for(int i = 0; i < eyeAgents.Count; i++)
+        Debug.Log($"ModifyScore : {eyeAgents.Count}");
+
+        for (int i = 0; i < eyeAgents.Count; i++)
         {
-            if (eyeAgents[i].networkObjectId != NetworkObjectId)
+            if (eyeAgents[i].networkObjectId != networkObjectId)
                 continue;
 
             Debug.Log("ModifyScore");
@@ -177,13 +187,19 @@ public class Eye_Brain : NetworkBehaviour
                 score = newScore
             };
 
-            HandleValueChangedRpc(i);
+            //HandleAgentsListChanged(new NetworkListEvent<EyeEntityState>
+            //{
+            //    Value = eyeAgents[i],
+            //    Type = NetworkListEvent<EyeEntityState>.EventType.Value,
+            //});
+            //HandleValueChangedClientRpc(i);
         }
     }
 
-    [Rpc(SendTo.Owner)]
-    private void HandleValueChangedRpc(int index)
+    [ClientRpc]
+    private void HandleValueChangedClientRpc(int index)
     {
+        Debug.Log("HandleValueChangedRpc");
         HandleAgentsListChanged(new NetworkListEvent<EyeEntityState>
         {
             Value = eyeAgents[index],
@@ -213,8 +229,12 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleAimPosition(Vector2 vector)
     {
-        Vector3 mouseWorldPosition = Camera.main.WorldToScreenPoint(vector);
-        aimPos = (mouseWorldPosition - Camera.main.ViewportToWorldPoint(Vector3.one / 2)).normalized;
+        //Vector3 mouseWorldPosition = Camera.main.WorldToScreenPoint(vector);
+        //aimPos = (mouseWorldPosition - Camera.main.ViewportToWorldPoint(Vector3.one / 2)).normalized;
+
+        Vector3 mousePos = Camera.main.ViewportToWorldPoint(vector);
+        mousePos.z = 0;
+        aimPos = (mousePos - mainAgent.transform.position).normalized;
         Debug.Log(aimPos);
     }
 

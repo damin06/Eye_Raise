@@ -59,9 +59,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BindingMode: 1
   m_FollowOffset: {x: 0, y: 0, z: -10}
-  m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_XDamping: 0.3
+  m_YDamping: 0.3
+  m_ZDamping: 0.3
   m_AngularDampingMode: 0
   m_PitchDamping: 0
   m_YawDamping: 0
@@ -135,8 +135,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   eyeAgentObj: {fileID: 8361397804778735486, guid: b66fc55b8ac34434f958cac101db2ded, type: 3}
-  moveSpeed: 40
   inputReader: {fileID: 11400000, guid: bff4493bc1a5e854f8857614fceb89bd, type: 2}
+  moveSpeed: 40
+  minSplitPoint: 100
   cam: {fileID: 6313960925380119765}
 --- !u!1 &7481640557372195936
 GameObject:

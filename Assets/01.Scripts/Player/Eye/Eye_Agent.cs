@@ -2,7 +2,6 @@ using QFSW.QC;
 using System;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 
 public class Eye_Agent : NetworkBehaviour
 {
@@ -10,9 +9,9 @@ public class Eye_Agent : NetworkBehaviour
     [SerializeField] private Color eyeColor = Color.black;
     private NetworkVariable<Vector2> movementInput = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    private Rigidbody2D rb = default;
-    private Eye_Animation eyeAnimation = default;
-    private Eye_Physics eyePhysics = default;
+    private Rigidbody2D rb;
+    private Eye_Animation eyeAnimation;
+    private Eye_Physics eyePhysics;
 
     public NetworkVariable<int> score = new NetworkVariable<int>();
     private Eye_Brain eyeBrain = null;
@@ -26,7 +25,7 @@ public class Eye_Agent : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        Debug.Log($"is Brain is null? {eyeBrain == null}");
+        eyeBrain = transform.GetComponentInParent<Eye_Brain>();
 
         score.OnValueChanged += HandleScoreChanged;
     }
@@ -53,7 +52,11 @@ public class Eye_Agent : NetworkBehaviour
     {
         if (IsOwner)
         {
-            rb.velocity = movementInput.Value;
+            if (eyeBrain != null && Vector2.Distance(eyeBrain.mainAgent.transform.position, transform.position) > 10)
+                return;
+
+                //rb.velocity = movementInput.Value;
+            rb.AddForce(movementInput.Value, ForceMode2D.Force);
         }
     }
 
@@ -85,6 +88,7 @@ public class Eye_Agent : NetworkBehaviour
         {
             float newScale = (float)((double)newValue / (double)100);
             SetScale(newScale);
+            rb.mass = (float)((double)newValue / (double)1000);
         }
 
         if (IsServer)
@@ -93,7 +97,7 @@ public class Eye_Agent : NetworkBehaviour
             {
                 eyeBrain = transform.GetComponentInParent<Eye_Brain>();
             }
-
+            Debug.Log($"is Brain is null? {eyeBrain == null}");
             eyeBrain.ModifySocre(NetworkObjectId, newValue);
         }
     }

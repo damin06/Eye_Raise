@@ -29,6 +29,12 @@ public class Eye_Animation : MonoBehaviour
             _sprite.materials[0] = Instantiate(material);
             fillMaterial = _sprite.materials[0];
         }
+
+        //if(TryGetComponent(out SpriteRenderer _renderer))
+        //{
+        //    _renderer.materials[0] = Instantiate(material);
+        //    fillMaterial = _renderer.materials[0];
+        //}
     }
 
     private void Update()

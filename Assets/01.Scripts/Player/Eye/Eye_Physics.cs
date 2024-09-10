@@ -21,7 +21,7 @@ public class Eye_Physics : MonoBehaviour
 
     private void Update()
     {
-        UpdateVerticies();
+        //UpdateVerticies();
     }
 
 
@@ -74,5 +74,7 @@ public class Eye_Physics : MonoBehaviour
                 _joint.distance = transform.localScale.x;
             }
         }
+
+        UpdateVerticies();
     }
 }
