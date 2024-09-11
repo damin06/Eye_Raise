@@ -38,9 +38,6 @@ public class RankBoardBehaviour : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        //클라이언트면 
-        // 랭크리스트에 변화에 리스닝을 해줘야 겠지?
-        // 맨 처음 접속시에는 리스트에 있는 모든 애들을 추가하는 작업도 해야해
         if(IsClient)
         {
             _rankList.OnListChanged += HandleRankListChanged;
@@ -53,9 +50,6 @@ public class RankBoardBehaviour : NetworkBehaviour
                 });
             }
         }
-
-
-        //서버면 
 
         if(IsServer)
         {

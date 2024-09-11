@@ -1562,6 +1562,7 @@ GameObject:
   - component: {fileID: 4549642343172072948}
   - component: {fileID: 7119750643909955234}
   - component: {fileID: 3494925257881935008}
+  - component: {fileID: 8548455455945762049}
   m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
@@ -1832,6 +1833,36 @@ PolygonCollider2D:
       - {x: -1.2848109, y: -1.0106028}
       - {x: -1.5, y: -0.75}
   m_UseDelaunayMesh: 0
+--- !u!114 &8548455455945762049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5864366535718947465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a692f7071903534438e85f4bc11d2d88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnTriggerEnter:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnCollisionEnter:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &7881139019406710928
 GameObject:
   m_ObjectHideFlags: 0
@@ -2085,7 +2116,6 @@ GameObject:
   - component: {fileID: 8621770225304602311}
   - component: {fileID: 6361968373941970632}
   - component: {fileID: 3099146845302566459}
-  - component: {fileID: 2532150300211488367}
   m_Layer: 0
   m_Name: EyeAgent
   m_TagString: Untagged
@@ -2260,7 +2290,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8361397804778735486}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -2343,26 +2373,6 @@ MonoBehaviour:
   eyeColor: {r: 0, g: 0, b: 0, a: 1}
   score:
     m_InternalValue: 0
---- !u!232 &2532150300211488367
-DistanceJoint2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8361397804778735486}
-  m_Enabled: 0
-  serializedVersion: 4
-  m_EnableCollision: 0
-  m_ConnectedRigidBody: {fileID: 0}
-  m_BreakForce: Infinity
-  m_BreakTorque: Infinity
-  m_BreakAction: 3
-  m_AutoConfigureConnectedAnchor: 1
-  m_Anchor: {x: 0, y: 0}
-  m_ConnectedAnchor: {x: 5.54, y: 5.41}
-  m_AutoConfigureDistance: 0
-  m_Distance: 5
-  m_MaxDistanceOnly: 0
 --- !u!1 &8620215383595811831
 GameObject:
   m_ObjectHideFlags: 0

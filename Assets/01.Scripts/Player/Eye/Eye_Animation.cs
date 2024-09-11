@@ -74,9 +74,9 @@ public class Eye_Animation : MonoBehaviour
     {
         curValue += Time.deltaTime * Random.Range(BlinkSpeed - 0.5f, BlinkSpeed + 0.5f);
 
-        float curEyelidValue = 1 + Mathf.Cos(curValue);
+        float curEyelidValue = Mathf.Cos(curValue);
         Vector3 elid = fillMaterial.GetVector("_EyelidScale");
-        elid.y = curEyelidValue;
+        elid.y = curEyelidValue + 1;
         fillMaterial.SetVector("_EyelidScale", elid);
 
         if(curValue >= Mathf.PI * 2)
@@ -85,6 +85,8 @@ public class Eye_Animation : MonoBehaviour
             curValue = 0;
         }
         
+
+        VolumeManager.Instance.Vignette.intensity.value = curEyelidValue;
     }
 
     private void RePlaceMovementAnimation()

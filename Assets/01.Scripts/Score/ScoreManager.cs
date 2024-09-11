@@ -12,6 +12,8 @@ public class ScoreManager : NetworkBehaviour
     public Vector2 maxSpawnPos;
     [SerializeField] private int maxSpawnCount;
     [SerializeField] private int minSpawnCount;
+    [SerializeField] private float minScale;
+    [SerializeField] private float maxScale;
 
     private float m_lastSpawnedTime = 0;
 
@@ -50,7 +52,7 @@ public class ScoreManager : NetworkBehaviour
                     Random.Range(minSpawnPos.x, maxSpawnPos.x),
                     Random.Range(minSpawnPos.y, maxSpawnPos.y)
                 ),
-                    Random.Range(0.55f, 0.75f),
+                    Random.Range(minScale, maxScale),
                     Random.ColorHSV(0f, 1f, 0.9f, 1f, 0.9f, 1f)
                 );
         }

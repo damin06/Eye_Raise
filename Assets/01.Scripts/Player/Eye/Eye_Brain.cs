@@ -9,11 +9,24 @@ using UnityEngine;
 
 public class Eye_Brain : NetworkBehaviour
 {
+    [Header("Agent")]
     [SerializeField] private GameObject eyeAgentObj;
     [SerializeField] private InputReader inputReader;
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private int minSplitPoint = 100;
     private Vector2 aimPos;
+
+    [Space]
+
+    [Header("Camera")]
+    [SerializeField] private CinemachineVirtualCamera cam;
+    public float minFov = 1f;
+    public float maxFov = 5f;
+    public float Fov 
+    {
+        get { return Fov; }
+        set { Fov = Math.Clamp(value, minFov, maxFov); }
+    }
 
     public static event Action<Eye_Brain> OnPlayerSpawned;
     public static event Action<Eye_Brain> OnPlayerDeSpawned;
@@ -24,7 +37,7 @@ public class Eye_Brain : NetworkBehaviour
     private NetworkList<EyeEntityState> eyeAgents = new NetworkList<EyeEntityState>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkObject mainAgent { private set; get; }
 
-    [SerializeField] private CinemachineVirtualCamera cam;
+
 
     public override void OnNetworkSpawn()
     {
@@ -44,10 +57,12 @@ public class Eye_Brain : NetworkBehaviour
             Debug.Log("Owner Spawned!");
             //cam = transform.Find("Virtual Camera").GetComponent<CinemachineVirtualCamera>();
             cam.Priority = 15;
+            eyeAgents.OnListChanged      += HandleAgentsListChanged;
+
             inputReader.MovementEvent    += HandleMovement;
             inputReader.SplitEvent       += HandleSplit;
             inputReader.AimPositionEvent += HandleAimPosition;
-            eyeAgents.OnListChanged      += HandleAgentsListChanged;
+            inputReader.MouseScrollEvent += HandleMousScroll;
 
             foreach(var entity in eyeAgents)
             {
@@ -61,6 +76,13 @@ public class Eye_Brain : NetworkBehaviour
             //mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[eyeAgents[0].networkObjectId];
             //cam.Follow = mainAgent.transform;
         }
+    }
+
+    private void HandleMousScroll(float obj)
+    {
+        Debug.Log($"Mouse Scroll : {obj}");
+        Fov += obj / 100;
+        cam.m_Lens.OrthographicSize += Fov;
     }
 
     public override void OnNetworkDespawn()
@@ -157,14 +179,9 @@ public class Eye_Brain : NetworkBehaviour
                 var _newAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_newAgentObjId];
                 if(_newAgent.TryGetComponent(out Rigidbody2D _rb))
                 {
-                    _rb.AddForce(_pos * 1.5f, ForceMode2D.Impulse);
-                    Debug.Log("AddForc" + _pos);
-
-                    //if(_newAgent.TryGetComponent(out DistanceJoint2D _joint))
-                    //{
-                    //    _joint.enabled = true;
-                    //    _joint.connectedBody = _rb;
-                    //}
+                    _rb.AddForce(_pos, ForceMode2D.Impulse);
+                    Debug.Log("AddForce" + _pos);
+                    Debug.Log($"Original AgentPos : {_agentObj.transform.position} New AgentPos : {_newAgent.transform.position} Distance : {Vector2.Distance(_agentObj.transform.position, _newAgent.transform.position)}");
                 }
 
             }
@@ -196,17 +213,6 @@ public class Eye_Brain : NetworkBehaviour
         }
     }
 
-    [ClientRpc]
-    private void HandleValueChangedClientRpc(int index)
-    {
-        Debug.Log("HandleValueChangedRpc");
-        HandleAgentsListChanged(new NetworkListEvent<EyeEntityState>
-        {
-            Value = eyeAgents[index],
-            Type = NetworkListEvent<EyeEntityState>.EventType.Value,
-        });
-    }
-
     public void SetUserName(string newUsername)
     {
         username.Value = newUsername;
@@ -235,7 +241,6 @@ public class Eye_Brain : NetworkBehaviour
         Vector3 mousePos = Camera.main.ViewportToWorldPoint(vector);
         mousePos.z = 0;
         aimPos = (mousePos - mainAgent.transform.position).normalized;
-        Debug.Log(aimPos);
     }
 
     private void HandleSplit()
@@ -257,20 +262,60 @@ public class Eye_Brain : NetworkBehaviour
     {
         Debug.Log("Handle List Changed!");
         UpdateTotalScore(evt.Value);
+        UpdateMainAgent(evt.Value);
 
-        //switch (evt.Type)
-        //{
-        //    case NetworkListEvent<EyeEntityState>.EventType.Add:
-        //    case NetworkListEvent<EyeEntityState>.EventType.Clear:
-        //    case NetworkListEvent<EyeEntityState>.EventType.RemoveAt:
-        //    case NetworkListEvent<EyeEntityState>.EventType.Remove:
-        //    case NetworkListEvent<EyeEntityState>.EventType.Value:
-        //        //UpdateTotalScore(evt.Value);
-        //        break;
-        //}
+        switch (evt.Type)
+        {
+            case NetworkListEvent<EyeEntityState>.EventType.Add:
+            case NetworkListEvent<EyeEntityState>.EventType.Clear:
+            case NetworkListEvent<EyeEntityState>.EventType.RemoveAt:
+            case NetworkListEvent<EyeEntityState>.EventType.Remove:
+
+                break;
+            case NetworkListEvent<EyeEntityState>.EventType.Value:
+                //UpdateTotalScore(evt.Value);
+                break;
+        }
     }
 
-    public void UpdateTotalScore(EyeEntityState value)
+    private void RemoveAgent(NetworkObject agent)
+    {
+        var item = eyeAgents.
+    }
+
+    private void UpdateMainAgent(EyeEntityState value)
+    {
+        if (mainAgent == null)
+        {
+            mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
+            cam.Follow = mainAgent.transform;
+
+            if (mainAgent.TryGetComponent(out Eye_Agent _agent))
+            {
+                //_agent.score.OnValueChanged += HandleMainAgentScoreChanged;
+            }
+        }
+        else
+        {
+            if (mainAgent.gameObject.TryGetComponent(out Eye_Agent _agent) && mainAgent.NetworkObjectId != value.networkObjectId)
+            {
+                if (_agent.score.Value < value.score)
+                {
+                    if (mainAgent.TryGetComponent(out Eye_Agent _prvAgent))
+                    {
+                        //_prvAgent.score.OnValueChanged -= HandleMainAgentScoreChanged;
+                        //_prvAgent.score.OnValueChanged = null;
+                    }
+
+                    mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
+                    cam.Follow = mainAgent.transform;
+
+                    //_agent.score.OnValueChanged += HandleMainAgentScoreChanged;
+                }
+            }
+        }
+    }
+    private void UpdateTotalScore(EyeEntityState value)
     {
         int newScore = 0;
         Debug.Log("Score Updated!");
@@ -281,41 +326,12 @@ public class Eye_Brain : NetworkBehaviour
         }
 
         totalScore.Value = newScore;
-
-        if(mainAgent == null)
-        {
-            mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
-            cam.Follow = mainAgent.transform;
-            
-            if(mainAgent.TryGetComponent(out Eye_Agent _agent))
-            {
-                _agent.score.OnValueChanged += HandleMainAgentScoreChanged;
-            }
-        }
-        else
-        {
-            if(mainAgent.gameObject.TryGetComponent(out Eye_Agent _agent) && mainAgent.NetworkObjectId != value.networkObjectId)
-            {
-                if(_agent.score.Value < value.score)
-                {
-                    if (mainAgent.TryGetComponent(out Eye_Agent _prvAgent))
-                    {
-                        _prvAgent.score.OnValueChanged -= HandleMainAgentScoreChanged;
-                    }
-
-                    mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
-                    cam.Follow = mainAgent.transform;
-
-                    _agent.score.OnValueChanged += HandleMainAgentScoreChanged;
-                }
-            }
-        }
-
+        AdjustZoom(totalScore.Value);
     }
 
-    private void HandleMainAgentScoreChanged(int previousValue, int newValue)
+    private void AdjustZoom(int newValue)
     {
-        cam.m_Lens.OrthographicSize = (float)((double)newValue / (double)100) * 10;
+        cam.m_Lens.OrthographicSize = (float)((double)newValue / (double)100) * 14;
     }
 
     private void HandleMovement(Vector2 movementInput)
@@ -325,23 +341,5 @@ public class Eye_Brain : NetworkBehaviour
         {
             _agent.MoveInput(movementInput * moveSpeed);
         }
-    }
-
-    private void OnDrawGizmos()
-    {
-        if (!IsOwner)
-            return;
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(aimPos,1.5f);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (!IsOwner)
-            return;
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawSphere(aimPos, 1.5f);
     }
 }

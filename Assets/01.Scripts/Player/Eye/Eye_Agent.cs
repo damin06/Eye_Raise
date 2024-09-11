@@ -46,18 +46,40 @@ public class Eye_Agent : NetworkBehaviour
         {
             eyeAnimation.InputMovementAnimation(movementInput.Value.normalized);
         }
+
+        if (IsOwner)
+        {
+            Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
+            Vector2 _input = movementInput.Value;
+
+            //float t = CalculateMappedValue(eyeBrain.Fov, eyeBrain.minFov, eyeBrain.maxFov, 0, 1f);
+
+            if (_viewport.x > 1)
+                _input.x = 1;
+            if (_viewport.x < 0)
+                _input.x = 0;
+            if (_viewport.y > 1)
+                _input.y = 1;
+            if (_viewport.y < 0)
+                _input.y = 0;
+
+            //if (eyeBrain != null && Vector2.Distance(eyeBrain.mainAgent.transform.position, transform.position) > 10)
+            //    return;
+
+            //rb.velocity = movementInput.Value;
+            rb.AddForce(_input, ForceMode2D.Force);
+        }
     }
 
     private void FixedUpdate()
     {
-        if (IsOwner)
-        {
-            if (eyeBrain != null && Vector2.Distance(eyeBrain.mainAgent.transform.position, transform.position) > 10)
-                return;
+        
+    }
 
-                //rb.velocity = movementInput.Value;
-            rb.AddForce(movementInput.Value, ForceMode2D.Force);
-        }
+    private float CalculateMappedValue(float input, float minInput, float maxInput, float minOutput, float maxOutput)
+    {
+        float normalized = (input - minInput) / (maxInput - minInput);
+        return Mathf.Lerp(maxOutput, minOutput, normalized);
     }
 
     [Command]
@@ -102,7 +124,7 @@ public class Eye_Agent : NetworkBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    public void OnTriggerEnter2D(Collider2D collision)
     {
         if (!IsServer)
             return;
@@ -114,10 +136,10 @@ public class Eye_Agent : NetworkBehaviour
 
             ScoreManager.Instance.ReturnPoint(collision.GetComponent<NetworkObject>());
         }
-    }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        
+        if (collision.transform.IsChildOf(transform))
+        {
+
+        }
     }
 }
