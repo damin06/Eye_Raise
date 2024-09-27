@@ -23,7 +23,6 @@ public class NetworkServer : IDisposable
     private NetworkManager _networkManager;
 
     private Dictionary<ulong, UserData> _clientIdToUserDataDictionary = new Dictionary<ulong, UserData>();
-    //여기에 아이디로 플레이어를 찾을 수 있는 것도 만들어야 한다.
 
     public NetworkServer(NetworkObject playerPrefab)
     {
@@ -73,22 +72,18 @@ public class NetworkServer : IDisposable
 
     public void RespawnPlayer(ulong clientID)
     {
-        //여기서 위쪽에 플레이어를 스폰하는 코드를 잘 참조해서 리스폰 해주면 된다.
-        // 기본 리스폰은 Vector3.zero에서 하되, 플러스로 해보고 싶은 사람들은
-        // 스폰포인트를 랜덤으로 만들어서 그중에 한 곳에서 나오게 해봐라.
-        //여기까지 오면 플레이어를 생성할 준비가 끝난거다.
         NetworkObject instance = GameObject.Instantiate(_playerPrefab, ServerSingleton.Instance._respawnPostions._spawnPositions[UnityEngine.Random.Range(0, ServerSingleton.Instance._respawnPostions._spawnPositions.Count)], Quaternion.identity);
 
-        //자 1번과제 여기서 PlayerPrefab을 만들고 알맞게 오너쉽을 설정하세요.
+
         instance.SpawnAsPlayerObject(clientID);
 
         UserData userData = _clientIdToUserDataDictionary[clientID];
 
-        if (instance.TryGetComponent<Player>(out Player player))
+        if (instance.TryGetComponent(out Eye_Brain brain))
         {
             Debug.Log($"{userData.username} is Create complete!");
-            player.SetUserName(userData.username);
-            player.SetEyeColor(userData.color);
+            brain.SetEyeColor(userData.color);
+            brain.SetUserName(userData.username);
         }
         else
         {

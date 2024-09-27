@@ -1,9 +1,11 @@
+using QFSW.QC;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.U2D;
 
-public class Eye_Animation : MonoBehaviour
+public class Eye_Animation : NetworkBehaviour
 {
     [SerializeField] private Material material;
     private Material fillMaterial;
@@ -52,6 +54,7 @@ public class Eye_Animation : MonoBehaviour
         }
     }
 
+    [Command("SetEyeColor")]
     public void SetEyeColor(Color newColor)
     {
         fillMaterial.SetColor("_IrisColor", newColor);
@@ -79,14 +82,16 @@ public class Eye_Animation : MonoBehaviour
         elid.y = curEyelidValue + 1;
         fillMaterial.SetVector("_EyelidScale", elid);
 
-        if(curValue >= Mathf.PI * 2)
+        if (curValue >= Mathf.PI * 2)
         {
             blinkDelay = Random.Range(minBlinkDelay, maxBlinkDelay);
             curValue = 0;
         }
-        
 
-        VolumeManager.Instance.Vignette.intensity.value = curEyelidValue;
+        if (IsOwner)
+        {
+            //VolumeManager.Instance.Vignette.intensity.value = Mathf.Sign(curValue);
+        }
     }
 
     private void RePlaceMovementAnimation()

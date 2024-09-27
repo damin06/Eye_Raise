@@ -67,6 +67,37 @@ MonoBehaviour:
   m_YawDamping: 0
   m_RollDamping: 0
   m_AngularDamping: 0
+--- !u!1 &1111064138293511524
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5471279128374862868}
+  m_Layer: 0
+  m_Name: CamFollowTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5471279128374862868
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1111064138293511524}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2384633152049206225}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4661804237554696108
 GameObject:
   m_ObjectHideFlags: 0
@@ -78,6 +109,7 @@ GameObject:
   - component: {fileID: 2384633152049206225}
   - component: {fileID: 8868573816853325559}
   - component: {fileID: 1085219798731959875}
+  - component: {fileID: 1640331983815251562}
   m_Layer: 0
   m_Name: EyeBrain
   m_TagString: Untagged
@@ -99,6 +131,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 313094485436188657}
+  - {fileID: 5471279128374862868}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8868573816853325559
@@ -138,7 +171,60 @@ MonoBehaviour:
   inputReader: {fileID: 11400000, guid: bff4493bc1a5e854f8857614fceb89bd, type: 2}
   moveSpeed: 40
   minSplitPoint: 100
+  mergeableTime: 30
+  username:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
+  eyeColor:
+    m_InternalValue: {r: 0, g: 0, b: 0, a: 0}
+  LastHitDealerID: 0
+--- !u!114 &1640331983815251562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4661804237554696108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be782763821d6b3488ce7e57636a496d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   cam: {fileID: 6313960925380119765}
+  minFov: 1
+  maxFov: 5
 --- !u!1 &7481640557372195936
 GameObject:
   m_ObjectHideFlags: 0

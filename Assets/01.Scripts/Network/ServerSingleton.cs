@@ -5,19 +5,20 @@ using UnityEngine.SceneManagement;
 
 public class ServerSingleton : MonoBehaviour
 {
-    private static ServerSingleton _instance;
-    public static ServerSingleton Instance
-    {
-        get {
-            if (_instance != null) return _instance;
-            _instance = FindObjectOfType<ServerSingleton>();
+    public static ServerSingleton Instance;
 
-            if(_instance == null)
-            {
-                Debug.LogError("Server singleton does not exists");
-            }
-            return _instance;
+    private void Awake()
+    {
+        if(Instance == null)
+        {
+            Instance = this;
         }
+        else
+        {
+            Destroy(this);
+        }
+
+        DontDestroyOnLoad(Instance);
     }
 
     public NetworkServer NetServer { get; private set; }
@@ -39,8 +40,6 @@ public class ServerSingleton : MonoBehaviour
 
         
     }
-
-    
 
     private void OnDestroy()
     {
