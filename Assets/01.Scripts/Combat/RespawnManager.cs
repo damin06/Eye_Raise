@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using PlayerInGame;
 
 public class RespawnManager : NetworkBehaviour
 {

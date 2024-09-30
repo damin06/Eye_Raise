@@ -14,6 +14,7 @@ public class ApplicationController : MonoBehaviour
     [SerializeField] private NetworkObject _playerPrefab;
     [SerializeField] private ServerSingleton _serverPrefab;
     [SerializeField] private ClientSingleton _clientPrefab;
+    [SerializeField] private LobbySingleton _lobbyPrefab;
 
     [SerializeField] private string _ipAddress;
     [SerializeField] private ushort _port;
@@ -47,6 +48,10 @@ public class ApplicationController : MonoBehaviour
         ServerSingleton server = Instantiate(_serverPrefab, transform);
         server.StartServer(_playerPrefab, _ipAddress, _port);
         NetworkManager.Singleton.SceneManager.LoadScene(SceneList.Game, LoadSceneMode.Single);
+
+        LobbySingleton lobbySingleton = Instantiate(_lobbyPrefab, transform);
+        var lobbies = lobbySingleton.GetLobbiesList();
+        lobbySingleton.CreateLobby($"Lobby{lobbies.Result.Count}", 25, _ipAddress, _port.ToString());
     }
 
     private string GetLocalIP()

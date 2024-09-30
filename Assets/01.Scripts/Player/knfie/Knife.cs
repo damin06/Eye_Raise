@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
+using PlayerInGame;
 
 public class Knife : NetworkBehaviour
 {

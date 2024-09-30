@@ -3,6 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 using QFSW.QC;
+using PlayerInGame;
 
 public class Health : NetworkBehaviour
 {
