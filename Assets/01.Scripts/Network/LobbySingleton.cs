@@ -10,7 +10,6 @@ using Unity.Services.Lobbies.Models;
 using Unity.VisualScripting;
 using UnityEngine;
 
-
 public class LobbySingleton : MonoBehaviour
 {
     private static LobbySingleton _instance;
