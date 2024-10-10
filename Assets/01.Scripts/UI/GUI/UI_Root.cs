@@ -6,35 +6,20 @@ using UnityEngine.UI;
 using TMPro;
 
 [RequireComponent(typeof(Canvas))]
+[RequireComponent(typeof(CanvasScaler))]
+[RequireComponent(typeof(GraphicRaycaster))]
 public abstract class UI_Root : UI_Base
-{
-    protected Dictionary<string, UI_Scene> _scenes = new Dictionary<string, UI_Scene>();
-
+{   
     protected override void Init()
     {
         base.Init();
 
-        Bind<Image>();
-        Bind<TextMeshProUGUI>();
-        Bind<Button>();
-        Bind<Slider>();
+        Bind<UI_Panel>();
     }
 
-    protected override void Awake()
+    public UI_Panel GetPanel(string _name)
     {
-        base.Awake();
-
-        List<UI_Scene> uI_Scenes = Util.Util.FindChilds<UI_Scene>(gameObject);
-
-        foreach (var item in uI_Scenes)
-        {
-            _scenes.Add(item.name, item);
-        }
-    }
-
-    public UI_Scene GetScene(string _name)
-    {
-        return _scenes[_name];
+        return Get<UI_Panel>(_name);
     }
 
     #region Show Or Hide Scene
@@ -47,7 +32,7 @@ public abstract class UI_Root : UI_Base
             return;
         }
 
-        if (!_scenes.ContainsKey(name))
+        if (GetPanel(name) == null)
         {
             Debug.LogWarning($"{name} does not exist");
             return;
@@ -55,16 +40,16 @@ public abstract class UI_Root : UI_Base
 
         if (callback)
         {
-            _scenes[name].gameObject.SetActive(true);
-            _scenes[name].ActiveWithMotion();
+            GetPanel(name).gameObject.SetActive(true);
+            GetPanel(name).ActiveWithMotion();
         }
         else
-            _scenes[name].gameObject.SetActive(true);
+            GetPanel(name).gameObject.SetActive(true);
     }
 
-    public void ShowScene(UI_Scene scene)
+    public void ShowScene(UI_Panel scene)
     {
-        if (!_scenes.ContainsValue(scene))
+        if (GetPanel(name) == null)
         {
             Debug.LogWarning($"{scene.name} does not exist");
             return;
@@ -81,21 +66,21 @@ public abstract class UI_Root : UI_Base
             return;
         }
 
-        if (!_scenes.ContainsKey(name))
+        if (GetPanel(name) == null)
         {
             Debug.LogWarning($"{name} does not exist");
             return;
         }
 
         if (callback)
-            _scenes[name].DeactiveWithMotion();
+            GetPanel(name).DeactiveWithMotion();
         else
-            _scenes[name].gameObject.SetActive(false);
+            GetPanel(name).gameObject.SetActive(false);
     }
 
-    public void HideScene(UI_Scene scene)
+    public void HideScene(UI_Panel scene)
     {
-        if (!_scenes.ContainsValue(scene))
+        if (GetPanel(name) == null)
         {
             Debug.LogWarning($"{scene.name} does not exist");
             return;

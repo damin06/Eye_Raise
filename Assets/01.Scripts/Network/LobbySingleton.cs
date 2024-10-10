@@ -7,7 +7,6 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class LobbySingleton : MonoBehaviour
@@ -35,6 +34,7 @@ public class LobbySingleton : MonoBehaviour
 
     private async void Awake()
     {
+        //게스트 로그인
         await UnityServices.InitializeAsync();
 
         AuthenticationService.Instance.SignedIn += () =>

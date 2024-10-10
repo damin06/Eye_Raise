@@ -13,10 +13,10 @@ public abstract class UI_Base : MonoBehaviour
 
     protected virtual void Awake()
     {
+        Init();
     }
     protected virtual void OnEnable()
     {
-        Init();
     }
 
     protected virtual void Start()
@@ -25,8 +25,7 @@ public abstract class UI_Base : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (gameObject.activeSelf == false)
-            return;
+
     }
 
     protected virtual void Init()
