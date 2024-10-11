@@ -10,6 +10,8 @@ namespace Define
         Up,
         Move,
         Click,
+        Enter,
+        Exit,
         Dragging,
         OnDrag,
         EndDrag
