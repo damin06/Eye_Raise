@@ -16,9 +16,8 @@ namespace Util
 
     }
 
-    public class Util
+    public  class Util
     {
-
         public static void BindAnimatorEvent(Animator _ani, string _aniName, AniState _state, Event _event)
         {
             CoroutineHelper.StartCoroutine(BindAnimatorEventRoutine(_ani, _aniName, _state, _event));

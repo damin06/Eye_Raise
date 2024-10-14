@@ -12,6 +12,7 @@ public abstract class UI_Panel : UI_Base
 
         Bind<Image>();
         Bind<TextMeshProUGUI>();
+        Bind<TMP_InputField>();
         Bind<Button>();
         Bind<Slider>();
         Bind<RawImage>();
