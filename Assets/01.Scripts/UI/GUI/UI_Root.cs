@@ -4,6 +4,8 @@ using UnityEngine;
 using Util;
 using UnityEngine.UI;
 using TMPro;
+using System.Threading.Tasks;
+using System;
 
 [RequireComponent(typeof(Canvas))]
 [RequireComponent(typeof(CanvasScaler))]
@@ -24,69 +26,49 @@ public abstract class UI_Root : UI_Base
 
     #region Show Or Hide Scene
 
-    public void ShowScene(string name, bool callback = false)
+    public async Task ShowScene(string name)
     {
-        if (string.IsNullOrEmpty(name))
+        try
         {
-            Debug.LogWarning($"{name} is empty");
-            return;
-        }
+            UI_Panel panel = GetPanel(name);
+            await panel.ActiveWithMotion();
+            Debug.Log($"{name} is successfully actived!");
 
-        if (GetPanel(name) == null)
-        {
-            Debug.LogWarning($"{name} does not exist");
-            return;
         }
-
-        if (callback)
+        catch (Exception ex)
         {
-            GetPanel(name).gameObject.SetActive(true);
-            GetPanel(name).ActiveWithMotion();
+            Debug.LogException(ex);
         }
-        else
-            GetPanel(name).gameObject.SetActive(true);
     }
 
-    public void ShowScene(UI_Panel scene)
+    public async Task HideScene(string name)
     {
-        if (GetPanel(name) == null)
+        try
         {
-            Debug.LogWarning($"{scene.name} does not exist");
-            return;
-        }
+            UI_Panel panel = GetPanel(name);
+            await panel.DeactiveWithMotion();
+            Debug.Log($"{name} is successfully deactived!");
 
-        scene.ActiveWithMotion();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogException(ex);
+        }
     }
 
-    public void HideScene(string name, bool callback = false)
+    public async Task ChangePanel(string prvName, string newName)
     {
-        if (string.IsNullOrEmpty(name))
+        try
         {
-            Debug.LogWarning($"{name} is empty");
-            return;
-        }
+            await HideScene(prvName);
+            await ShowScene(newName);
 
-        if (GetPanel(name) == null)
+            Debug.Log($"Successfully replaced from {prvName} panel to {newName} panel");
+        }
+        catch(Exception ex)
         {
-            Debug.LogWarning($"{name} does not exist");
-            return;
+            Debug.LogException(ex);
         }
-
-        if (callback)
-            GetPanel(name).DeactiveWithMotion();
-        else
-            GetPanel(name).gameObject.SetActive(false);
-    }
-
-    public void HideScene(UI_Panel scene)
-    {
-        if (GetPanel(name) == null)
-        {
-            Debug.LogWarning($"{scene.name} does not exist");
-            return;
-        }
-
-        scene.DeactiveWithMotion();
     }
 
     #endregion

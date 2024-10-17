@@ -9,7 +9,11 @@ using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using Sequence = DG.Tweening.Sequence;
-using Util;
+using Utill = Util.Util;
+using System.Threading.Tasks;
+using Firebase;
+using UnityEngine.Purchasing;
+
 
 [Serializable]
 struct ArrowPos
@@ -22,8 +26,10 @@ struct ArrowPos
 public class Panel_Intro : UI_Panel
 {
     private Button eye;
-    private TMP_InputField nameInput;
     private TextMeshProUGUI title;
+    private TMP_InputField nameInput;
+    private TMP_InputField emailInput;
+    private TMP_InputField passwordInput;
 
     [SerializeField] private string[] forbiddenWords;
     [SerializeField] ArrowPos[] arrowPos;
@@ -31,21 +37,21 @@ public class Panel_Intro : UI_Panel
     [SerializeField] private Material eyeMaterial;
     [SerializeField] private float minRange = -0.15f;
     [SerializeField] private float maxRange = 0.15f;
-    private Vector2 eyeScreenPoint;
 
     protected override void Init()
     {
         base.Init();
         
         eye = Get<Button>("Button_Eye");
-        nameInput = Get<TMP_InputField>("InputField_Name");
         title = Get<TextMeshProUGUI>("TMP_Title");
+        nameInput = Get<TMP_InputField>("InputField_Name");
+        emailInput = Get<TMP_InputField>("InputField_Email");
+        passwordInput = Get<TMP_InputField>("InputField_Password");
 
         nameInput.characterLimit = 10;
         nameInput.onValueChanged.AddListener(HandleOnNameInputChanged);
 
         inputReader.AimPositionEvent += HandleAimPosition;
-        eyeScreenPoint = Camera.main.ScreenToViewportPoint(RectTransformUtility.WorldToScreenPoint(Camera.main, eye.transform.position));
 
         for(int i = 1; i <= 4; i++)
         {
@@ -54,36 +60,28 @@ public class Panel_Intro : UI_Panel
             BindEvent(_arrow.gameObject, HandleOnExitArrow, Define.ClickType.Exit);
         }
 
-        title.text = "OH MY\nEYES!";
-        title.fontSize = 196f;
-        BindEvent(title.gameObject, HandleOnEnterArrow, Define.ClickType.Enter);
         BindEvent(title.gameObject, HandleOnExitArrow, Define.ClickType.Exit);
-
-        eye.onClick.AddListener(HandleClickEye);
+        BindEvent(title.gameObject, HandleOnEnterArrow, Define.ClickType.Enter);
         eyeMaterial.SetFloat("_EyeVeins", 1);
+
+        ShowIntro();
     }
 
+    #region Intro
 
-
-
-    private void SetEyeVeins(bool EyeVeins)
+    private void ShowIntro()
     {
-        DOTween.To(() => eyeMaterial.GetFloat("_EyeVeins"), x => eyeMaterial.SetFloat("_EyeVeins", x), EyeVeins ? 0 : 1, 1.5f);
+        for (int i = 0; i < arrowPos.Length; i++)
+        {
+            Get<Image>(arrowPos[i].ObjectName).rectTransform.DOAnchorPos(arrowPos[i].OriginPos, 0.4f).SetEase(Ease.InBack);
+        }
+
+        Get<TextMeshProUGUI>("TMP_Title").rectTransform.DOAnchorPosY(-242, 0.4f).SetEase(Ease.InBack);
+        title.text = "OH MY\nEYE!!!";
+        title.fontSize = 196f;
+        eye.onClick.AddListener(HandleClickEye);
+        SetEyeVeins(false);
     }
-
-    private void BlinkEyeVeins()
-    {
-        Sequence sequence = DOTween.Sequence();
-
-        sequence.Append(DOTween.To(() => eyeMaterial.GetFloat("_EyeVeins"), x => eyeMaterial.SetFloat("_EyeVeins", x), 1, 1f));
-        sequence.Append(DOTween.To(() => eyeMaterial.GetFloat("_EyeVeins"), x => eyeMaterial.SetFloat("_EyeVeins", x), 0, 1f));
-    }
-
-    float Remap(float value, float from1, float to1, float from2, float to2)
-    {
-        return from2 + (value - from1) * (to2 - from2) / (to1 - from1);
-    }
-
 
     private void HideIntro()
     {
@@ -92,7 +90,14 @@ public class Panel_Intro : UI_Panel
             Get<Image>(arrowPos[i].ObjectName).rectTransform.DOAnchorPos(arrowPos[i].EndPos, 0.4f).SetEase(Ease.InBack);
         }
         Get<TextMeshProUGUI>("TMP_Title").rectTransform.DOAnchorPosY(287f, 0.4f).SetEase(Ease.InBack);
+        (nameInput.transform as RectTransform).DOAnchorPosY(800f, 0.3f).SetEase(Ease.InBack);
+        (emailInput.transform as RectTransform).DOAnchorPosY(1200f, 0.3f).SetEase(Ease.InBack);
+        (passwordInput.transform as RectTransform).DOAnchorPosY(995f, 0.3f).SetEase(Ease.InBack);
     }
+
+    #endregion
+
+    #region NameInput
 
     private void ShowNameInput()
     {
@@ -101,10 +106,102 @@ public class Panel_Intro : UI_Panel
             Get<Image>(arrowPos[i].ObjectName).rectTransform.DOAnchorPos(arrowPos[i].OriginPos, 0.4f).SetEase(Ease.Linear);
         }
 
+        (nameInput.transform as RectTransform).DOAnchorPosY(0, 0.3f).SetEase(Ease.InBack);
+
         title.text = "Enter your name!";
         title.fontSize = 161f;
         title.rectTransform.DOAnchorPosY(-242f, 0.4f).SetEase(Ease.InBack);
+
+        eye.onClick.AddListener(async () =>
+        {
+            try
+            {
+                FirebaseResult databaseResult = await DatabaseManager.Instance.GetUserDataBase(FirebaseAuthManager.Instance.GetUserID());
+                UserInfo userInfo = (UserInfo)databaseResult.Result;
+
+                Dictionary<string, object> updates = new Dictionary<string, object>
+                {
+                    { "UserName", nameInput.text }
+                };
+                await DatabaseManager.Instance.UpdateUserData(FirebaseAuthManager.Instance.GetUserID(), updates).ContinueWith(task =>
+                {
+                    if (task.IsCompletedSuccessfully)
+                    {
+                        eye.onClick.RemoveAllListeners();
+                        UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+                    }
+                });
+            }
+            catch (FirebaseException ex)
+            {
+                Debug.LogException(ex);
+            }
+        });
     }
+
+    private void HideNameInput()
+    {
+        for (int i = 0; i < arrowPos.Length; i++)
+        {
+            Get<Image>(arrowPos[i].ObjectName).rectTransform.DOAnchorPos(arrowPos[i].EndPos, 0.4f).SetEase(Ease.Linear);
+        }
+
+        (nameInput.transform as RectTransform).DOAnchorPosY(800f, 0.3f).SetEase(Ease.InBack);
+    }
+
+#endregion
+
+    #region Login
+
+    private void ShowLoginInput()
+    {
+        (emailInput.transform as RectTransform).DOAnchorPosY(220f, 0.3f).SetEase(Ease.InBack);
+        (passwordInput.transform as RectTransform).DOAnchorPosY(0, 0.3f).SetEase(Ease.InBack);
+        eye.onClick.RemoveAllListeners();
+
+        eye.onClick.AddListener(async () =>
+        {
+            FirebaseResult signUpResult = await FirebaseAuthManager.Instance.SignUpWithEmailPasswordAsync(emailInput.text, passwordInput.text);
+
+            if (signUpResult.ErrorCode == 8 && signUpResult.State == FirebaseState.Failed)
+            {
+                FirebaseResult signIpResult = await FirebaseAuthManager.Instance.SignInWithEmailPasswordAsync(emailInput.text, passwordInput.text);
+                ShowErrorMessage(signIpResult.Message);
+
+                if (signIpResult.State == FirebaseState.success)
+                {
+                    HideLoginInput();
+                    eye.onClick.RemoveAllListeners();
+                    UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+                }
+            }
+            else if (signUpResult.State == FirebaseState.success)
+            {
+                ShowErrorMessage(signUpResult.Message);
+                UserInfo userInfo = new UserInfo("NONAME", 0);
+                FirebaseResult databaseResult = await DatabaseManager.Instance.CreateUserDatabase(FirebaseAuthManager.Instance.GetUserID(), userInfo);
+                await FirebaseAuthManager.Instance.SignInWithEmailPasswordAsync(emailInput.text, passwordInput.text).ContinueWith(task =>
+                {
+                    if (task.IsCompletedSuccessfully)
+                    {
+                        HideLoginInput();
+                        Invoke("ShowNameInput", 0.5f);
+                        eye.onClick.RemoveAllListeners();
+                    }
+
+                });
+            }
+
+        });
+    }
+
+    private void HideLoginInput()
+    {
+        (emailInput.transform as RectTransform).DOAnchorPosY(1200f, 0.3f).SetEase(Ease.InBack);
+        (passwordInput.transform as RectTransform).DOAnchorPosY(995f, 0.3f).SetEase(Ease.InBack);
+    }
+
+    #endregion
 
     #region Handle
 
@@ -112,7 +209,8 @@ public class Panel_Intro : UI_Panel
     {
         BlinkEyeVeins();
         HideIntro();
-        Invoke("ShowNameInput", 0.5f);
+        Invoke("ShowLoginInput", 0.5f);
+        //Invoke("ShowNameInput", 0.5f);
     }
 
     private void HandleOnNameInputChanged(string arg0)
@@ -157,8 +255,8 @@ public class Panel_Intro : UI_Panel
         input.y += 0.5f;
         Vector2 dir = new Vector2
             (
-                Remap(input.x, 0f, 1f, minRange, maxRange),
-                Remap(input.y, 0f, 1f, minRange, maxRange)
+                Utill.Remap(input.x, 0f, 1f, minRange, maxRange),
+                Utill.Remap(input.y, 0f, 1f, minRange, maxRange)
             );
         eyeMaterial.SetVector("_IrisPos", dir);
     }
@@ -174,4 +272,40 @@ public class Panel_Intro : UI_Panel
     }
 
     #endregion
+
+    private void ShowErrorMessage(string message)
+    {
+        Debug.Log(message);
+        title.text = message;
+        title.fontSize = 55;
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(title.rectTransform.DOAnchorPosY(-144f, 0.3f));
+        sequence.Insert(0.5f, title.rectTransform.DOShakeAnchorPos(0.5f));
+    }
+
+    private void SetEyeVeins(bool EyeVeins)
+    {
+        DOTween.To(() => eyeMaterial.GetFloat("_EyeVeins"), x => eyeMaterial.SetFloat("_EyeVeins", x), EyeVeins ? 0 : 1, 1.5f);
+    }
+
+    private void BlinkEyeVeins()
+    {
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(DOTween.To(() => eyeMaterial.GetFloat("_EyeVeins"), x => eyeMaterial.SetFloat("_EyeVeins", x), 0, 1f));
+        sequence.Append(DOTween.To(() => eyeMaterial.GetFloat("_EyeVeins"), x => eyeMaterial.SetFloat("_EyeVeins", x), 1, 1f));
+    }
+
+    protected override IEnumerator ActiveSceneRoutine()
+    {
+        ShowIntro();
+        yield return new WaitForSeconds(0.5f);
+    }
+
+    protected override IEnumerator DeactiveSceneRoutine()
+    {
+        HideIntro();
+        HideNameInput();
+        HideLoginInput();
+        yield return new WaitForSeconds(0.5f);
+    }
 }

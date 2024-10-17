@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Threading.Tasks;
+using Mono.CSharp.yyParser;
 
 public abstract class UI_Panel : UI_Base
 {
@@ -22,46 +24,25 @@ public abstract class UI_Panel : UI_Base
     protected virtual void OnActive() { }
     protected virtual void OnDeactive() { }
 
-
-    public delegate void SceneRoutineCallback();
-
-    SceneRoutineCallback SceneActiveCallback;
-    SceneRoutineCallback SceneDeactiveCallback;
-
-    public virtual void ActiveWithMotion(SceneRoutineCallback callback = default)
+    public async Task ActiveWithMotion()
     {
-        SceneActiveCallback = callback;
         gameObject.SetActive(true);
-        StartCoroutine(ActiveSceneRoutine());
+        await ActiveSceneRoutine();
     }
 
-    public virtual void DeactiveWithMotion(SceneRoutineCallback callback = default)
+    public async Task DeactiveWithMotion()
     {
-        SceneDeactiveCallback = callback;
-        StartCoroutine(DeactiveSceneRoutine());
+        await DeactiveSceneRoutine();
+        gameObject.SetActive(false);
     }
 
-    /// <summary>
-    /// yield return StartCoroutine(base.ActiveSceneRoutine()); must be added at the end.
-    /// </summary>
-    /// <returns></returns>
     protected virtual IEnumerator ActiveSceneRoutine()
     {
-        if (SceneActiveCallback != null)
-            SceneActiveCallback();
         yield return null;
     }
 
-    /// <summary>
-    /// yield return StartCoroutine(base.DeactiveSceneRoutine()); must be added at the end.
-    /// </summary>
-    /// <returns></returns>
     protected virtual IEnumerator DeactiveSceneRoutine()
     {
-        if (SceneDeactiveCallback != null)
-            SceneDeactiveCallback();
-
-        gameObject.SetActive(false);
         yield return null;
     }
 
