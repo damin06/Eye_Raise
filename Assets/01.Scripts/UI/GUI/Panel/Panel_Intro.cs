@@ -123,12 +123,12 @@ public class Panel_Intro : UI_Panel
                 {
                     { "UserName", nameInput.text }
                 };
-                await DatabaseManager.Instance.UpdateUserData(FirebaseAuthManager.Instance.GetUserID(), updates).ContinueWith(task =>
+                await DatabaseManager.Instance.UpdateUserData(FirebaseAuthManager.Instance.GetUserID(), updates).ContinueWith(async task =>
                 {
                     if (task.IsCompletedSuccessfully)
                     {
                         eye.onClick.RemoveAllListeners();
-                        UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+                        await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
                     }
                 });
             }
@@ -172,7 +172,7 @@ public class Panel_Intro : UI_Panel
                 {
                     HideLoginInput();
                     eye.onClick.RemoveAllListeners();
-                    UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+                    await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
                 }
             }
             else if (signUpResult.State == FirebaseState.success)
@@ -306,6 +306,7 @@ public class Panel_Intro : UI_Panel
         HideIntro();
         HideNameInput();
         HideLoginInput();
-        yield return new WaitForSeconds(0.5f);
+        (eye.transform as RectTransform).DOAnchorPosY(-700, 0.3f).SetEase(Ease.InBack);
+        yield return new WaitForSeconds(0.6f);
     }
 }

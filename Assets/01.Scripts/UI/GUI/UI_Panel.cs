@@ -27,24 +27,18 @@ public abstract class UI_Panel : UI_Base
     public async Task ActiveWithMotion()
     {
         gameObject.SetActive(true);
-        await ActiveSceneRoutine();
+        await ActiveSceneRoutine().ToTask(this);
     }
 
     public async Task DeactiveWithMotion()
     {
-        await DeactiveSceneRoutine();
+        await DeactiveSceneRoutine().ToTask(this);
         gameObject.SetActive(false);
     }
 
-    protected virtual IEnumerator ActiveSceneRoutine()
-    {
-        yield return null;
-    }
+    protected abstract IEnumerator ActiveSceneRoutine();
 
-    protected virtual IEnumerator DeactiveSceneRoutine()
-    {
-        yield return null;
-    }
+    protected abstract IEnumerator DeactiveSceneRoutine();
 
     protected override void OnEnable()
     {

@@ -104,7 +104,7 @@ namespace Util
                 return null;
 
             List<T> list = new List<T>();
-            Transform[] childs = root.GetComponentsInChildren<Transform>();
+            Transform[] childs = root.GetComponentsInChildren<Transform>(true);
 
             //for (int i = 0; i < childs.Length; i++)
             //{
