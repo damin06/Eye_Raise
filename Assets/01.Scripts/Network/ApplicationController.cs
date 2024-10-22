@@ -11,6 +11,8 @@ using UnityEngine.UI;
 
 public class ApplicationController : MonoBehaviour
 {
+    public static ApplicationController Instance { get; private set; }
+
     [SerializeField] private NetworkObject _playerPrefab;
     [SerializeField] private ServerSingleton _serverPrefab;
     [SerializeField] private ClientSingleton _clientPrefab;
@@ -21,8 +23,13 @@ public class ApplicationController : MonoBehaviour
 
     [SerializeField] private TMP_InputField inputField;
 
-    private void Start()
+    private void Awake()
     {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(this);
+
         DontDestroyOnLoad(gameObject);
         //LaunchByMode(SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null);
         if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
@@ -49,9 +56,8 @@ public class ApplicationController : MonoBehaviour
         server.StartServer(_playerPrefab, _ipAddress, _port);
         NetworkManager.Singleton.SceneManager.LoadScene(SceneList.Game, LoadSceneMode.Single);
 
-        LobbySingleton lobbySingleton = Instantiate(_lobbyPrefab, transform);
-        var lobbies = lobbySingleton.GetLobbiesList();
-        lobbySingleton.CreateLobby($"Lobby{lobbies.Result.Count}", 25, _ipAddress, _port.ToString());
+        var lobbies = LobbySingleton.Instance.GetLobbiesList();
+        LobbySingleton.Instance.CreateLobby($"Lobby{lobbies.Result.Count + 1}", 25, _ipAddress, _port.ToString());
     }
 
     private string GetLocalIP()
@@ -69,7 +75,7 @@ public class ApplicationController : MonoBehaviour
         return string.Empty;
     }
 
-    public void StartGame()
+    public void StartClient(string ipAddress)
     {
         if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             return;

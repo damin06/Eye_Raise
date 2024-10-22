@@ -28,9 +28,9 @@ public class DatabaseManager
         databaseReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
-    public async Task<FirebaseResult> CreateUserDatabase(string userId, UserInfo userInfo)
+    public async Task<MessageResult> CreateUserDatabase(string userId, UserInfo userInfo)
     {
-        FirebaseResult result = new FirebaseResult();
+        MessageResult result = new MessageResult();
         //string json = JsonUtility.ToJson(userInfo);
 
         try
@@ -51,9 +51,9 @@ public class DatabaseManager
         return result;
     }
 
-    public async Task<FirebaseResult> UpdateUserData(string userId, Dictionary<string, object> updates)
+    public async Task<MessageResult> UpdateUserData(string userId, Dictionary<string, object> updates)
     {
-        FirebaseResult result = new FirebaseResult();
+        MessageResult result = new MessageResult();
 
         try
         {
@@ -73,9 +73,9 @@ public class DatabaseManager
         return result;
     }
 
-    public async Task<FirebaseResult> GetUserDataBase(string userId)
+    public async Task<MessageResult> GetUserDataBase(string userId)
     {
-        FirebaseResult result = new FirebaseResult();
+        MessageResult result = new MessageResult();
 
         try
         {

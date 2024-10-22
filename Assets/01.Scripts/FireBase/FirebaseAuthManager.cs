@@ -31,10 +31,11 @@ public class FirebaseAuthManager
     private FirebaseAuth auth = null;
     private FirebaseUser user = null;
 
-    FirebaseAuthManager()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Init()
     {
-        auth = FirebaseAuth.DefaultInstance;
-        auth.StateChanged += OnChangedState;
+        Instance.auth = FirebaseAuth.DefaultInstance;
+        Instance.auth.StateChanged += Instance.OnChangedState;
     }
 
     private void OnChangedState(object sender, EventArgs e)
@@ -70,15 +71,15 @@ public class FirebaseAuthManager
     }
 
     //Result
-    public async Task<FirebaseResult> SignUpWithEmailPasswordAsync(string eamail, string password)
+    public async Task<MessageResult> SignUpWithEmailPasswordAsync(string eamail, string password)
     {
-        FirebaseResult result = new FirebaseResult();
+        MessageResult result = new MessageResult();
         try
         {
             await auth.CreateUserWithEmailAndPasswordAsync(eamail, password);
             Debug.Log("Membership registration successful");
 
-            SignInWithEmailPasswordAsync(eamail, password);
+            await SignInWithEmailPasswordAsync(eamail, password);
             result.Message = "Membership registration successful";
             result.State = FirebaseState.success;
         }
@@ -98,9 +99,9 @@ public class FirebaseAuthManager
         return result;
     }
 
-    public async Task<FirebaseResult> SignInWithEmailPasswordAsync(string eamail, string password)
+    public async Task<MessageResult> SignInWithEmailPasswordAsync(string eamail, string password)
     {
-        FirebaseResult result = new FirebaseResult();
+        MessageResult result = new MessageResult();
         try
         {
             await auth.SignInWithEmailAndPasswordAsync(eamail, password);

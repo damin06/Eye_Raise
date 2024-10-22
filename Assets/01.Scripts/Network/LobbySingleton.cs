@@ -35,14 +35,7 @@ public class LobbySingleton : MonoBehaviour
     private async void Awake()
     {
         //게스트 로그인
-        await UnityServices.InitializeAsync();
 
-        AuthenticationService.Instance.SignedIn += () =>
-        {
-            Debug.Log("Signed in" + AuthenticationService.Instance.PlayerId);
-        };
-
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }
 
     private void Update()
@@ -85,6 +78,15 @@ public class LobbySingleton : MonoBehaviour
 
     public async void CreateLobby(string lobbyName, int maxPlayers, string serverIP, string serverPort)
     {
+        await UnityServices.InitializeAsync();
+
+        AuthenticationService.Instance.SignedIn += () =>
+        {
+            Debug.Log("Signed in" + AuthenticationService.Instance.PlayerId);
+        };
+
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
         try
         {
             CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions

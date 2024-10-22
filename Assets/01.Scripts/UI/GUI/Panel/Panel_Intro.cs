@@ -13,6 +13,7 @@ using Utill = Util.Util;
 using System.Threading.Tasks;
 using Firebase;
 using UnityEngine.Purchasing;
+using Unity.Services.Authentication;
 
 
 [Serializable]
@@ -116,26 +117,36 @@ public class Panel_Intro : UI_Panel
         {
             try
             {
-                FirebaseResult databaseResult = await DatabaseManager.Instance.GetUserDataBase(FirebaseAuthManager.Instance.GetUserID());
-                UserInfo userInfo = (UserInfo)databaseResult.Result;
-
-                Dictionary<string, object> updates = new Dictionary<string, object>
-                {
-                    { "UserName", nameInput.text }
-                };
-                await DatabaseManager.Instance.UpdateUserData(FirebaseAuthManager.Instance.GetUserID(), updates).ContinueWith(async task =>
-                {
-                    if (task.IsCompletedSuccessfully)
-                    {
-                        eye.onClick.RemoveAllListeners();
-                        await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
-                    }
-                });
+                await CloudManager.Instance.SavePlayerData("name", nameInput.text);
+                eye.onClick.RemoveAllListeners();
+                UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
             }
-            catch (FirebaseException ex)
+            catch (Exception ex)
             {
                 Debug.LogException(ex);
             }
+            //try
+            //{
+            //    MessageResult databaseResult = await DatabaseManager.Instance.GetUserDataBase(FirebaseAuthManager.Instance.GetUserID());
+            //    UserInfo userInfo = (UserInfo)databaseResult.Result;
+
+            //    Dictionary<string, object> updates = new Dictionary<string, object>
+            //    {
+            //        { "UserName", nameInput.text }
+            //    };
+            //    await DatabaseManager.Instance.UpdateUserData(FirebaseAuthManager.Instance.GetUserID(), updates).ContinueWith(async task =>
+            //    {
+            //        if (task.IsCompletedSuccessfully)
+            //        {
+            //            eye.onClick.RemoveAllListeners();
+            //            await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+            //        }
+            //    });
+            //}
+            //catch (FirebaseException ex)
+            //{
+            //    Debug.LogException(ex);
+            //}
         });
     }
 
@@ -158,40 +169,61 @@ public class Panel_Intro : UI_Panel
         (emailInput.transform as RectTransform).DOAnchorPosY(220f, 0.3f).SetEase(Ease.InBack);
         (passwordInput.transform as RectTransform).DOAnchorPosY(0, 0.3f).SetEase(Ease.InBack);
         eye.onClick.RemoveAllListeners();
+        AuthManager.Instance.Logout();
 
         eye.onClick.AddListener(async () =>
         {
-            FirebaseResult signUpResult = await FirebaseAuthManager.Instance.SignUpWithEmailPasswordAsync(emailInput.text, passwordInput.text);
+            //if (AuthenticationService.Instance.IsSignedIn)
+            //{
+            //    if (CloudManager.Instance.LoadPlayerData<string>("name") == default || CloudManager.Instance.LoadPlayerData<string>("name") == null)
+            //    {
+            //        Invoke("ShowNameInput", 0.5f);
+            //    }
+            //    else
+            //    {
+            //        await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+            //    }
+            //    return;
+            //}
+            MessageResult signUpResult = await AuthManager.Instance.SignUpWithUsernamePasswordAsync(emailInput.text, passwordInput.text);
 
-            if (signUpResult.ErrorCode == 8 && signUpResult.State == FirebaseState.Failed)
+            if (signUpResult.State == FirebaseState.success)
             {
-                FirebaseResult signIpResult = await FirebaseAuthManager.Instance.SignInWithEmailPasswordAsync(emailInput.text, passwordInput.text);
+                MessageResult signIpResult = await AuthManager.Instance.SignInWithUsernamePasswordAsync(emailInput.text, passwordInput.text);
+                ShowErrorMessage(signIpResult.Message);
+
+                if (signIpResult.State == FirebaseState.success || signIpResult.ErrorCode == AuthenticationErrorCodes.AccountAlreadyLinked)
+                {
+                    HideLoginInput();
+                    Invoke("ShowNameInput", 0.5f);
+                    eye.onClick.RemoveAllListeners();
+                }
+            }
+            else if (signUpResult.ErrorCode == AuthenticationErrorCodes.ClientInvalidUserState || signUpResult.ErrorCode == AuthenticationErrorCodes.AccountAlreadyLinked)
+            {
+                MessageResult signIpResult = await AuthManager.Instance.SignInWithUsernamePasswordAsync(emailInput.text, passwordInput.text);
                 ShowErrorMessage(signIpResult.Message);
 
                 if (signIpResult.State == FirebaseState.success)
                 {
-                    HideLoginInput();
                     eye.onClick.RemoveAllListeners();
-                    await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+                    HideLoginInput();
+
+                    string name = await CloudManager.Instance.LoadPlayerData<string>("name");
+                    if (name == null || name == default)
+                    {
+                        Invoke("ShowNameInput", 0.5f);
+                    }
+                    else
+                    {
+                        await UIManager_Lobby.Instance.ChangePanel(gameObject.name, "Panel_Lobby");
+                    }
                 }
             }
-            else if (signUpResult.State == FirebaseState.success)
+            else if (signUpResult.State == FirebaseState.Failed)
             {
                 ShowErrorMessage(signUpResult.Message);
-                UserInfo userInfo = new UserInfo("NONAME", 0);
-                FirebaseResult databaseResult = await DatabaseManager.Instance.CreateUserDatabase(FirebaseAuthManager.Instance.GetUserID(), userInfo);
-                await FirebaseAuthManager.Instance.SignInWithEmailPasswordAsync(emailInput.text, passwordInput.text).ContinueWith(task =>
-                {
-                    if (task.IsCompletedSuccessfully)
-                    {
-                        HideLoginInput();
-                        Invoke("ShowNameInput", 0.5f);
-                        eye.onClick.RemoveAllListeners();
-                    }
-
-                });
             }
-
         });
     }
 

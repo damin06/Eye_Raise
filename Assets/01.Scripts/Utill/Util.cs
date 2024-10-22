@@ -13,7 +13,7 @@ public enum FirebaseState : ulong
     success
 }
 [Serializable]
-public struct FirebaseResult
+public struct MessageResult
 {
     public string Message;
     public int ErrorCode;
