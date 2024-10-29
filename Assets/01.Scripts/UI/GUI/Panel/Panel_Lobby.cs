@@ -28,6 +28,7 @@ public class Panel_Lobby : UI_Panel
     [Command]
     private async void RefreshLobbiesList()
     {
+        LobbySingleton.Instance.PrintLobbies();
         foreach(Transform lobby in content.transform)
         {
             Destroy(lobby.gameObject);

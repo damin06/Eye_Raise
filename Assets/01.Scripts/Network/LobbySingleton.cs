@@ -1,5 +1,4 @@
 using Mono.CSharp;
-using QFSW.QC;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,21 +8,19 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
-public class LobbySingleton : MonoBehaviour
+public class LobbySingleton
 {
-    private static LobbySingleton _instance;
+    private static LobbySingleton instance;
     public static LobbySingleton Instance
     {
         get
         {
-            if (_instance != null) return _instance;
-            _instance = FindObjectOfType<LobbySingleton>();
-            
-            if (_instance == null)
+            if (instance == null)
             {
-                Debug.LogError("LobbySingleton does not exists");
+                instance = new LobbySingleton();
             }
-            return _instance;
+
+            return instance;
         }
     }
 
@@ -32,10 +29,14 @@ public class LobbySingleton : MonoBehaviour
     private float heartbeatTimer;
     private float lobbyUpdateTimer;
 
-    private async void Awake()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Init()
     {
-        //게스트 로그인
+        if(instance == null)
+            instance = new LobbySingleton();
 
+        UnityServices.InitializeAsync();
+        Debug.Log("Lobby Initialized!");
     }
 
     private void Update()
@@ -78,8 +79,6 @@ public class LobbySingleton : MonoBehaviour
 
     public async void CreateLobby(string lobbyName, int maxPlayers, string serverIP, string serverPort)
     {
-        await UnityServices.InitializeAsync();
-
         AuthenticationService.Instance.SignedIn += () =>
         {
             Debug.Log("Signed in" + AuthenticationService.Instance.PlayerId);
@@ -91,6 +90,7 @@ public class LobbySingleton : MonoBehaviour
         {
             CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
             {
+                IsLocked = false,
                 IsPrivate = false,
                 Data = new Dictionary<string, DataObject>
                 {
@@ -139,7 +139,6 @@ public class LobbySingleton : MonoBehaviour
         }
     }
 
-    [Command]
     public async void PrintLobbies()
     {
         try
@@ -262,7 +261,6 @@ public class LobbySingleton : MonoBehaviour
         }
     }
 
-    [Command]
     public async void KickPlayer(string playerID)
     {
         try
@@ -296,14 +294,11 @@ public class LobbySingleton : MonoBehaviour
         }
     }
 
-    [Command]
     public void PrintJoinedPlayers()
     {
         PrintPlayers(joinedLobby);
     }
 
-
-    [Command]
     public async void MigrateLobbyHost(string newHostID)
     {
         try

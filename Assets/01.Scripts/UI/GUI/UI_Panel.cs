@@ -1,10 +1,7 @@
+using System.Threading.Tasks;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Threading.Tasks;
-using Mono.CSharp.yyParser;
 
 public abstract class UI_Panel : UI_Base
 {

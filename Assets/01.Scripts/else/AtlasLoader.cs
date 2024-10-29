@@ -84,7 +84,7 @@ public class AtlasLoader : MonoBehaviour
         LoadSprite();
     }
 
-    [MenuItem("Atlas/UnLoadSprites %&u")]
+    //[MenuItem("Atlas/UnLoadSprites %&u")]
     public static void UnLoadSprites()
     {
         List<AtlasLoader> _atlas = Util.Util.FindAllObjects<AtlasLoader>();
@@ -97,7 +97,7 @@ public class AtlasLoader : MonoBehaviour
         Debug.Log($"{_atlas.Count} sprites were unloaded");
     }
 
-    [MenuItem("Atlas/LoadSprites %&l")]
+    //[MenuItem("Atlas/LoadSprites %&l")]
     public static void LoadSprites()
     {
         List<AtlasLoader> _atlas = Util.Util.FindAllObjects<AtlasLoader>();

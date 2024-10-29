@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Util;
-using UnityEngine.UI;
-using TMPro;
 using System.Threading.Tasks;
+using UnityEngine.UI;
+using UnityEngine;
 using System;
 
 [RequireComponent(typeof(Canvas))]
@@ -23,8 +19,6 @@ public abstract class UI_Root : UI_Base
     {
         return Get<UI_Panel>(_name);
     }
-
-    #region Show Or Hide Scene
 
     public async Task ShowScene(string name)
     {
@@ -70,6 +64,4 @@ public abstract class UI_Root : UI_Base
             Debug.LogException(ex);
         }
     }
-
-    #endregion
 }

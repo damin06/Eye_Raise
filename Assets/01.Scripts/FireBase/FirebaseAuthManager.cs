@@ -31,7 +31,7 @@ public class FirebaseAuthManager
     private FirebaseAuth auth = null;
     private FirebaseUser user = null;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Init()
     {
         Instance.auth = FirebaseAuth.DefaultInstance;

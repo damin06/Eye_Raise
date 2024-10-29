@@ -17,8 +17,6 @@ public class ServerSingleton : MonoBehaviour
         {
             Destroy(this);
         }
-
-        DontDestroyOnLoad(Instance);
     }
 
     public NetworkServer NetServer { get; private set; }

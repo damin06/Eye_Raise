@@ -5,6 +5,8 @@ using System.Net;
 using System.Net.Sockets;
 using TMPro;
 using Unity.Netcode;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -16,14 +18,13 @@ public class ApplicationController : MonoBehaviour
     [SerializeField] private NetworkObject _playerPrefab;
     [SerializeField] private ServerSingleton _serverPrefab;
     [SerializeField] private ClientSingleton _clientPrefab;
-    [SerializeField] private LobbySingleton _lobbyPrefab;
 
     [SerializeField] private string _ipAddress;
     [SerializeField] private ushort _port;
 
     [SerializeField] private TMP_InputField inputField;
 
-    private void Awake()
+    private async void Awake()
     {
         if (Instance == null)
             Instance = this;
@@ -31,6 +32,9 @@ public class ApplicationController : MonoBehaviour
             Destroy(this);
 
         DontDestroyOnLoad(gameObject);
+
+        await UnityServices.InitializeAsync();
+
         //LaunchByMode(SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null);
         if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
         {
@@ -38,8 +42,10 @@ public class ApplicationController : MonoBehaviour
         }
     }
 
-    private void StartServer()
+    private async void StartServer()
     {
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
         IPHostEntry ipEntry = Dns.GetHostEntry(Dns.GetHostName());
 
         foreach (IPAddress address in ipEntry.AddressList)
@@ -57,7 +63,7 @@ public class ApplicationController : MonoBehaviour
         NetworkManager.Singleton.SceneManager.LoadScene(SceneList.Game, LoadSceneMode.Single);
 
         var lobbies = LobbySingleton.Instance.GetLobbiesList();
-        LobbySingleton.Instance.CreateLobby($"Lobby{lobbies.Result.Count + 1}", 25, _ipAddress, _port.ToString());
+        LobbySingleton.Instance.CreateLobby($"Lobby{lobbies.Result.Count + 1}", 50, _ipAddress, _port.ToString());
     }
 
     private string GetLocalIP()

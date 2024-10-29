@@ -1,4 +1,5 @@
 using Codice.CM.WorkspaceServer.Tree;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 
@@ -8,6 +9,7 @@ public class BuildScript
     private const string BUILD_SERVER_PATH = BUILD_ROOT + "Server/";
     private const string BUILD_CLIENT_PATH = BUILD_ROOT + "Client";
 
+    [ExtensionOfNativeClass]
     [MenuItem("Builder/DedicatedServer")]
     public static void BuildDedicatedServer()
     {
@@ -18,7 +20,6 @@ public class BuildScript
         buildOption.subtarget = (int) StandaloneBuildSubtarget.Server;
         //빌드하자마자 실행되는 옵션. 만약 원하지 않으면 주석처리.
         buildOption.options = BuildOptions.AutoRunPlayer;
-
         BuildPipeline.BuildPlayer(buildOption);
     }
 
@@ -71,4 +72,8 @@ public class BuildScript
 
         return listScenePath.ToArray();
     }
+}
+
+internal class ExtensionOfNativeClassAttribute : Attribute
+{
 }
