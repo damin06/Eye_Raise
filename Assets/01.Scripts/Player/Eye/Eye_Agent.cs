@@ -2,6 +2,7 @@ using QFSW.QC;
 using System;
 using TMPro;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
@@ -39,15 +40,16 @@ public class Eye_Agent : NetworkBehaviour
             creationTime.Value = Time.time;
         }
 
+
         if (IsClient)
         {
-            //nameLabel.font = Instantiate(font);
-            //nameLabel.font.material.SetColor(ShaderUtilities.ID_OutlineColor, eyeBrain.eyeColor.Value);
-            eyeBrain.username.OnValueChanged += HandleNameChanged;
+            //eyeBrain.username.OnValueChanged += HandleNameChanged;
             eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
 
             HandleNameChanged("", eyeBrain.username.Value);
             HandleEyeColorChanged(Color.blue, eyeBrain.eyeColor.Value);
+            //nameLabel.font = Instantiate(font);
+            //nameLabel.font.material.SetColor(ShaderUtilities.ID_OutlineColor, eyeBrain.eyeColor.Value);
         }
     }
 
@@ -62,7 +64,7 @@ public class Eye_Agent : NetworkBehaviour
 
         if (IsClient)
         {
-            eyeBrain.username.OnValueChanged -= HandleNameChanged;
+            //eyeBrain.username.OnValueChanged -= HandleNameChanged;
             eyeBrain.eyeColor.OnValueChanged -= HandleEyeColorChanged;
         }
         Debug.Log($"{NetworkObjectId} is Destroyed!");
@@ -73,7 +75,7 @@ public class Eye_Agent : NetworkBehaviour
         eyeBrain = transform.GetComponentInParent<Eye_Brain>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (IsClient)
         {
@@ -85,16 +87,14 @@ public class Eye_Agent : NetworkBehaviour
             Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
             Vector2 _input = movementInput.Value;
 
-            //float t = CalculateMappedValue(eyeBrain.Fov, eyeBrain.minFov, eyeBrain.maxFov, 0, 1f);
-
-            if (_viewport.x > 1)
-                _input.x = 1;
-            if (_viewport.x < 0)
-                _input.x = 0;
-            if (_viewport.y > 1)
-                _input.y = 1;
-            if (_viewport.y < 0)
-                _input.y = 0;
+            //if (_viewport.x > 1)
+            //    _input.x = 1;
+            //if (_viewport.x < 0)
+            //    _input.x = 0;
+            //if (_viewport.y > 1)
+            //    _input.y = 1;
+            //if (_viewport.y < 0)
+            //    _input.y = 0;
 
 
             //if (eyeBrain != null && Vector2.Distance(eyeBrain.mainAgent.transform.position, transform.position) > 10)
@@ -114,6 +114,11 @@ public class Eye_Agent : NetworkBehaviour
     private void HandleNameChanged(FixedString32Bytes previousValue, FixedString32Bytes newValue)
     {
         nameLabel.text = newValue.ToString();
+    }
+
+    public void SetNameLabel(string name)
+    {
+        nameLabel.text = name;
     }
 
 

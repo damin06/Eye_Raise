@@ -150,6 +150,8 @@ public class Eye_Brain : NetworkBehaviour
                 _agent.Init();
             }
         }
+
+        HandleNameChanged(username.Value, username.Value);
     }
 
     [ServerRpc]
@@ -226,7 +228,7 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleMousScroll(float obj)
     {
-        Debug.Log($"Mouse Scroll : {obj}");
+        //Debug.Log($"Mouse Scroll : {obj}");
 
     }
 
@@ -247,7 +249,11 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleNameChanged(FixedString32Bytes prev, FixedString32Bytes newValue)
     {
-
+        Eye_Agent[] _agents = transform.GetComponentsInChildren<Eye_Agent>();
+        foreach (var _agent in _agents)
+        {
+            _agent.SetNameLabel(newValue.ToString());
+        }
     }
 
     private void HandleEyeColorChanged(Color prev , Color newValue)
@@ -265,7 +271,6 @@ public class Eye_Brain : NetworkBehaviour
             HandleDie();
         }
 
-        Debug.Log("Handle List Changed!");
         UpdateTotalScore(evt.Value);
         UpdateMainAgent(evt.Value);
     }
@@ -333,7 +338,6 @@ public class Eye_Brain : NetworkBehaviour
     private void UpdateTotalScore(EyeEntityState value)
     {
         int newScore = 0;
-        Debug.Log("Score Updated!");
 
         foreach (var _agents in eyeAgents)
         {

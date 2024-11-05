@@ -172,6 +172,7 @@ MonoBehaviour:
   moveSpeed: 40
   minSplitPoint: 100
   mergeableTime: 30
+  LastHitDealerID: 0
   username:
     m_InternalValue:
       utf8LengthInBytes: 0
@@ -209,7 +210,6 @@ MonoBehaviour:
         byte0029: 0
   eyeColor:
     m_InternalValue: {r: 0, g: 0, b: 0, a: 0}
-  LastHitDealerID: 0
 --- !u!114 &1640331983815251562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,6 +223,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 6313960925380119765}
+  followTarget: {fileID: 5471279128374862868}
   minFov: 1
   maxFov: 5
 --- !u!1 &7481640557372195936
@@ -277,7 +278,7 @@ MonoBehaviour:
   m_Priority: 10
   m_StandbyUpdate: 2
   m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 0}
+  m_Follow: {fileID: 5471279128374862868}
   m_Lens:
     FieldOfView: 40
     OrthographicSize: 10

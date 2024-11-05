@@ -160,13 +160,13 @@ public class NetworkObjectPool : NetworkBehaviour
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private GameObject CreateInstance(GameObject prefab)
     {
-        var _object = Instantiate(prefab);
+        var _object = Instantiate(prefab, transform);
 
         if (_object.TryGetComponent(out NetworkObject _networkObj))
         {
             _networkObj.Spawn();
             _networkObj.name = _networkObj.name.Replace("(Clone)", "");
-            //_networkObj.TrySetParent(NetworkObject);
+            _networkObj.TrySetParent(NetworkObject);
         }
 
         return _object;

@@ -883,10 +883,10 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 6b1b5656-50ab-4c4f-a567-e352b145c2fa
+  cloudProjectId: 3fd1e2a2-8644-4b49-95f4-cdfa66ab5343
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: dedicated_server (2)
+  projectName: eye
   organizationId: damin0614
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

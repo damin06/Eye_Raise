@@ -39,7 +39,7 @@ public class LobbySingleton
         Debug.Log("Lobby Initialized!");
     }
 
-    private void Update()
+    public void Update()
     {
         HandleLobbyHeartbeat();
         HandleLobbyPollForUpdates();
@@ -47,51 +47,51 @@ public class LobbySingleton
 
     private async void HandleLobbyHeartbeat()
     {
-        if(hostLobby != null)
-        {
-            heartbeatTimer -= Time.deltaTime;
-            if(heartbeatTimer < 0) 
-            {
-                float heartbeatTimerMax = 15;
-                heartbeatTimer = heartbeatTimerMax;
+        if (hostLobby == null)
+            return;
 
-                await LobbyService.Instance.SendHeartbeatPingAsync(hostLobby.Id);
-            }
+        heartbeatTimer -= Time.deltaTime;
+        if (heartbeatTimer < 0)
+        {
+            float heartbeatTimerMax = 15;
+            heartbeatTimer = heartbeatTimerMax;
+
+            await LobbyService.Instance.SendHeartbeatPingAsync(hostLobby.Id);
         }
     }
 
     private async void HandleLobbyPollForUpdates()
     {
-        if (joinedLobby != null)
-        {
-            lobbyUpdateTimer -= Time.deltaTime;
-            if (heartbeatTimer < 0)
-            {
-                float lobbyUpdateTimerMax = 1.1f;
-                lobbyUpdateTimer = lobbyUpdateTimerMax;
+        if (hostLobby != null || joinedLobby == null)
+            return;
 
-                Lobby lobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
-                joinedLobby = lobby;
-            }
+        lobbyUpdateTimer -= Time.deltaTime;
+        if (lobbyUpdateTimer < 0)
+        {
+            float lobbyUpdateTimerMax = 1.25f;
+            lobbyUpdateTimer = lobbyUpdateTimerMax;
+
+            Lobby lobby = await LobbyService.Instance.GetLobbyAsync(joinedLobby.Id);
+            joinedLobby = lobby;
         }
     }
 
-
-    public async void CreateLobby(string lobbyName, int maxPlayers, string serverIP, string serverPort)
+    public async Task CreateLobby(string lobbyName, int maxPlayers, string serverIP, string serverPort)
     {
-        AuthenticationService.Instance.SignedIn += () =>
-        {
-            Debug.Log("Signed in" + AuthenticationService.Instance.PlayerId);
-        };
+        //AuthenticationService.Instance.SignedIn += () =>
+        //{
+        //    Debug.Log("Signed in" + AuthenticationService.Instance.PlayerId);
+        //};
 
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        //await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
+        Debug.Log("Lobby!!!");
         try
         {
             CreateLobbyOptions createLobbyOptions = new CreateLobbyOptions
             {
-                IsLocked = false,
-                IsPrivate = false,
+                //IsLocked = false,
+                //IsPrivate = false,
                 Data = new Dictionary<string, DataObject>
                 {
                     { "server_ip", new DataObject(DataObject.VisibilityOptions.Public, serverIP)},
@@ -108,7 +108,10 @@ public class LobbySingleton
         catch(LobbyServiceException ex)
         {
             Debug.LogWarning(ex);
+            Debug.Log("Lobby Failed!");
         }
+
+        PrintLobbies();
     }
 
     public async Task<List<Lobby>> GetLobbiesList()
@@ -178,6 +181,8 @@ public class LobbySingleton
             {
                 Player = GetPlayer(playerName)
             };
+
+            Debug.Log($"P : {joinLobbyByCodeOptions.Player.Id} A : {AuthenticationService.Instance.PlayerId}");
 
             Lobby lobby = await Lobbies.Instance.JoinLobbyByCodeAsync(lobbyCode, joinLobbyByCodeOptions);
             joinedLobby =lobby;

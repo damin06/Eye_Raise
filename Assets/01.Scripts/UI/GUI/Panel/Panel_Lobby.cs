@@ -1,6 +1,7 @@
 using QFSW.QC;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,15 +29,18 @@ public class Panel_Lobby : UI_Panel
     [Command]
     private async void RefreshLobbiesList()
     {
-        LobbySingleton.Instance.PrintLobbies();
+        //LobbySingleton.Instance.PrintLobbies();
         foreach(Transform lobby in content.transform)
         {
             Destroy(lobby.gameObject);
         }
 
         List<Lobby> lobbies = await LobbySingleton.Instance.GetLobbiesList();
-        foreach(Lobby newLobby in lobbies)
+        Debug.Log("Lobbies found:" + lobbies.Count);
+
+        foreach (Lobby newLobby in lobbies)
         {
+            Debug.Log(newLobby.Name);
             Button_Lobby newButton = (Button_Lobby)Instantiate(lobbyBtn, content.transform);
             newButton.SetLobby(newLobby);
         }

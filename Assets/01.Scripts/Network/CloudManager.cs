@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Unity.Services.CloudSave.Models;
 using Unity.Services.CloudSave.Models.Data.Player;
 using SaveOptions = Unity.Services.CloudSave.Models.Data.Player.SaveOptions;
+using Newtonsoft.Json;
+using System;
 
 public class CloudManager
 {
@@ -25,7 +27,7 @@ public class CloudManager
 
     #region PlayerData
 
-    public async Task SavePlayerData(string key, object value)
+    public async Task SavePlayerData<T>(string key, T value)
     {
         var data = new Dictionary<string, object>
         {
@@ -48,16 +50,25 @@ public class CloudManager
         try
         {
             var savedData = await CloudSaveService.Instance.Data.Player.LoadAsync(new HashSet<string> { key }, new LoadOptions(new PublicReadAccessClassOptions()));
-            if (savedData.ContainsKey(key))
+           
+            if(savedData.TryGetValue(key, out var item))
             {
                 Debug.Log($"Player data loaded: {key} = {savedData[key]}");
-                string jsonData = savedData[key].ToString();
-                T data = JsonUtility.FromJson<T>(jsonData);
+                return item.Value.GetAs<T>();
             }
-            else
-            {
-                Debug.Log("No data found for key: " + key);
-            }
+                            
+            //if (savedData.ContainsKey(key))
+            //{
+            //    string jsonData = savedData[key].ToString();
+
+            //    //T data = JsonUtility.FromJson<T>(jsonData);
+            //    //T data = JsonConvert.DeserializeObject<T>(jsonData);
+            //    return JsonUtility.FromJson<string>(jsonData);
+            //}
+            //else
+            //{
+            //    Debug.Log("No data found for key: " + key);
+            //}
         }
         catch (CloudSaveException ex)
         {

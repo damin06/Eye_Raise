@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
 using Unity.Services.Authentication;
@@ -10,6 +11,7 @@ using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class ApplicationController : MonoBehaviour
 {
@@ -42,6 +44,11 @@ public class ApplicationController : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        LobbySingleton.Instance.Update();
+    }
+
     private async void StartServer()
     {
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
@@ -56,14 +63,20 @@ public class ApplicationController : MonoBehaviour
                 break;
             }
         }
-        Debug.Log($"current IP ({_ipAddress})");
 
+        var lobbies = await LobbySingleton.Instance.GetLobbiesList();
+
+
+        ////무료버전 요금 한도 ㅠㅠ
+        //await Task.Delay(1100);
+
+        await LobbySingleton.Instance.CreateLobby($"Lobby{lobbies.Count + 1}", 51, _ipAddress, _port.ToString());
+        //await LobbySingleton.Instance.CreateLobby($"Lobby Test", 50, _ipAddress, _port.ToString());
+
+        Debug.Log($"current IP ({_ipAddress})");
         ServerSingleton server = Instantiate(_serverPrefab, transform);
         server.StartServer(_playerPrefab, _ipAddress, _port);
         NetworkManager.Singleton.SceneManager.LoadScene(SceneList.Game, LoadSceneMode.Single);
-
-        var lobbies = LobbySingleton.Instance.GetLobbiesList();
-        LobbySingleton.Instance.CreateLobby($"Lobby{lobbies.Result.Count + 1}", 50, _ipAddress, _port.ToString());
     }
 
     private string GetLocalIP()
@@ -81,17 +94,25 @@ public class ApplicationController : MonoBehaviour
         return string.Empty;
     }
 
-    public void StartClient(string ipAddress)
+    public async void StartClient(string ipAddress)
     {
         if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             return;
-        _ipAddress = inputField.text;
+        _ipAddress = ipAddress;
 
 
         ClientSingleton client = Instantiate(_clientPrefab, transform);
         client.CreateClient(_ipAddress, _port);
 
-        SceneManager.LoadScene(SceneList.Menu);
+        UserData userData = new UserData
+        {
+            username = await CloudManager.Instance.LoadPlayerData<string>("name"),
+            userId = AuthenticationService.Instance.PlayerId,
+            color = Random.ColorHSV()
+        };
+
+        ClientSingleton.Instance.StartClient(userData);
+        //SceneManager.LoadScene(SceneList.Menu);
     }
 
     private void LaunchByMode(bool isDedicatedServer)

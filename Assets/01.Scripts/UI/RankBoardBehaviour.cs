@@ -27,19 +27,15 @@ public class RankBoardBehaviour : NetworkBehaviour
     [SerializeField] private RecordUI _recordPrefab;
     [SerializeField] private RectTransform _recordParentTrm;
 
-    private NetworkList<RankBoardEntityState> _rankList;
+    private NetworkList<RankBoardEntityState> _rankList = new NetworkList<RankBoardEntityState>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     private List<RecordUI> _rankUIList = new List<RecordUI>();
-
-    private void Awake()
-    {
-        _rankList = new NetworkList<RankBoardEntityState>();
-    }
 
     public override void OnNetworkSpawn()
     {
         if(IsClient)
         {
+            Debug.Log("RankBoard@");
             _rankList.OnListChanged += HandleRankListChanged;
             foreach(var entity in _rankList)
             {
@@ -75,7 +71,20 @@ public class RankBoardBehaviour : NetworkBehaviour
             };
             break;
         }
-        AdjustScoreToUIList();
+
+        for (int i = 1; i < _rankList.Count; i++)
+        {
+            for (int j = i; j < _rankList.Count - i; j++)
+            {
+                if (_rankList[i - 1].score > _rankList[i].score)
+                {
+                    var newRank = _rankList[i];
+                    _rankList[i] = _rankList[i - 1];
+                    _rankList[i - 1] = newRank;
+                }
+            }
+        }
+        //AdjustScoreToUIList();
     }
 
     public override void OnNetworkDespawn()
@@ -95,7 +104,6 @@ public class RankBoardBehaviour : NetworkBehaviour
 
     private void HandleUserJoin(ulong clientID, UserData userData)
     {
-        //랭킹보드에 추가를 해줘야겠지? 알잘딱으로(리스트에서)
         _rankList.Add(new RankBoardEntityState
         {
             clientID = clientID,
@@ -106,7 +114,6 @@ public class RankBoardBehaviour : NetworkBehaviour
 
     private void HandleUserLeft(ulong clientID, UserData userData)
     {
-        //랭킹보드에서 해당 클라이언트 아이디를 제거해줘야겠지?(리스트에서)
         foreach(RankBoardEntityState entity in _rankList)
         {
             if (entity.clientID != clientID) continue;
@@ -165,18 +172,6 @@ public class RankBoardBehaviour : NetworkBehaviour
         // 선택 : 갱신후에는 UIList를 정렬하고 
         // 정렬된 순서에 맞춰서 실제 UI의 순서도 변경한다.
         // RemoveFromParent => Add
-        for(int i = 1; i < _rankList.Count; i++)
-        {
-            for(int j = i; j < _rankList.Count - i; j++)
-            {
-                if (_rankList[i-1].score > _rankList[i].score)
-                {
-                    var newRank = _rankList[i];
-                    _rankList[i] = _rankList[i - 1];
-                    _rankList[i - 1] = newRank;
-                }
-            }
-        }
 
         foreach (var item in _rankUIList)
             item.gameObject.transform.SetParent(null);

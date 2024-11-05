@@ -27,7 +27,7 @@ public class Button_Lobby : Button
         Lobby = newLobby;
 
         lobbyName.text = newLobby.Name;
-        playerCount.text = $"{newLobby.Players.Count}/{newLobby.MaxPlayers}";
+        playerCount.text = $"{newLobby.Players.Count - 1}/{newLobby.MaxPlayers - 1}";
     }
 
     private async void OnButtonClick()

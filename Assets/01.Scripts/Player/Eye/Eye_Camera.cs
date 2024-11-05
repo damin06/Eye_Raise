@@ -4,13 +4,16 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
+[DisallowMultipleComponent]
 public class Eye_Camera : NetworkBehaviour
 {
     [SerializeField] private CinemachineVirtualCamera cam;
     [SerializeField] private Transform followTarget;
+    [SerializeField] private float followSpeed = 5f;
     [SerializeField] private float minFov = 1f;
     [SerializeField] private float maxFov = 5f;
-    private float maxOthoSize = 10;
+    [SerializeField] private float minOthoSize = 10;
+    private float currentOthoSize = 10;
 
     private Eye_Brain eyeBrain;
 
@@ -19,9 +22,10 @@ public class Eye_Camera : NetworkBehaviour
         eyeBrain = GetComponent<Eye_Brain>();
     }
 
-    private void LateUpdate()
+    private void FixedUpdate()
     {
-        followTarget.transform.position = eyeBrain.GetCenterOfAgents();
+        Vector3 targetPosition = eyeBrain.GetCenterOfAgents(); // 목표 위치
+        followTarget.transform.position = Vector3.Lerp(followTarget.transform.position, targetPosition, followSpeed * Time.deltaTime);
     }
 
     public override void OnNetworkSpawn()
@@ -31,7 +35,7 @@ public class Eye_Camera : NetworkBehaviour
             cam.Priority = 15;
             eyeBrain.TotalScore.OnValueChanged += (int prevValue, int newValue) =>
             {
-                maxOthoSize = (float)((double)newValue / (double)150) * 10;
+                currentOthoSize = Mathf.Clamp((float)((double)newValue / (double)150) * 10, minOthoSize, float.MaxValue);
                 AdjustOthoSize(newValue);
             };
         }
@@ -39,6 +43,6 @@ public class Eye_Camera : NetworkBehaviour
 
     private void AdjustOthoSize(int newValue)
     {
-        cam.m_Lens.OrthographicSize = (float)((double)newValue / (double)150) * 10;
+        cam.m_Lens.OrthographicSize = newValue;
     }
 }

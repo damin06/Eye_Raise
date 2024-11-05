@@ -210,7 +210,7 @@ public class Panel_Intro : UI_Panel
                     HideLoginInput();
 
                     string name = await CloudManager.Instance.LoadPlayerData<string>("name");
-                    if (name == null || name == default)
+                    if (name == default || String.IsNullOrEmpty(name))
                     {
                         Invoke("ShowNameInput", 0.5f);
                     }
