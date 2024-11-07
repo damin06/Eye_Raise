@@ -1,10 +1,13 @@
+using Mono.CSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Debug = UnityEngine.Debug;
 
 
 public enum FirebaseState : ulong
@@ -22,8 +25,12 @@ public struct MessageResult
 }
 
 
+
 namespace Util
 {
+    using System.Diagnostics;
+    using UnityEngine;
+
     public delegate void Event();
     public enum AniState
     {
@@ -32,8 +39,43 @@ namespace Util
 
     }
 
+
     public  class Util
     {
+        public static void InjectionComponents(object root)
+        {
+            Type type = root.GetType();
+            MonoBehaviour script = root as MonoBehaviour;
+
+            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach(var item in fields)
+            {
+                var atrribute = (FindComonenetAtrribute)item.GetCustomAttribute(typeof(FindComonenetAtrribute));
+
+                if (atrribute == null)
+                    continue;
+
+                Type filedType = item.FieldType;
+                Transform tr = script.transform.Find(atrribute._gameObjectName);
+                
+                Component component = tr.GetComponent<Component>();
+
+                if(component == null)
+                {
+                    UnityEngine.Debug.LogError($"Component {filedType.Name} of object {atrribute._gameObjectName} does not exist.");
+                    continue;
+                }
+
+                item.SetValue(script, component);
+            }
+        }
+
+        private float CalculateMappedValue(float input, float minInput, float maxInput, float minOutput, float maxOutput)
+        {
+            float normalized = (input - minInput) / (maxInput - minInput);
+            return Mathf.Lerp(maxOutput, minOutput, normalized);
+        }
         public static float Remap(float value, float from1, float to1, float from2, float to2)
         {
             return from2 + (value - from1) * (to2 - from2) / (to1 - from1);
@@ -140,6 +182,24 @@ namespace Util
             }
 
             return list.Where(a => a.name == name) as T;
+        }
+
+        public static Component Findchild(GameObject root, Type type, string name)
+        {
+            if (root == null)
+                return null;
+
+            Transform[] childs = root.GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in childs)
+            {
+                Component component = child.GetComponent(type);
+                if(child.name == name && component != null)
+                {
+                    return component;
+                }
+            }
+
+            return null;
         }
 
         public static T GetOrAddComponent<T>(GameObject obj) where T : UnityEngine.Component

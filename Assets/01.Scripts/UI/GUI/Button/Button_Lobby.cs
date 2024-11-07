@@ -12,9 +12,9 @@ public class Button_Lobby : Button
     private TextMeshProUGUI lobbyName;
     private TextMeshProUGUI playerCount;
 
-    protected override void Start()
+    protected override void Awake()
     {
-        base.Start();
+        base.Awake();
 
         lobbyName = transform.Find("TMP_ServerName")?.GetComponent<TextMeshProUGUI>();
         playerCount = transform.Find("TMP_PlayerCount")?.GetComponent<TextMeshProUGUI>();
@@ -26,8 +26,8 @@ public class Button_Lobby : Button
     {
         Lobby = newLobby;
 
-        lobbyName.text = newLobby.Name;
-        playerCount.text = $"{newLobby.Players.Count - 1}/{newLobby.MaxPlayers - 1}";
+        lobbyName.text = Lobby.Name;
+        playerCount.text = $"{Lobby.Players.Count - 1}/{Lobby.MaxPlayers - 1}";
     }
 
     private async void OnButtonClick()

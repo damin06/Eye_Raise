@@ -60,7 +60,8 @@ public class Eye_Animation : NetworkBehaviour
         fillMaterial.SetColor("_IrisColor", newColor);
     }
 
-    public void InputMovementAnimation(Vector2 _dir)
+    [ClientRpc]
+    public void InputMovementAnimationClientRpc(Vector2 _dir)
     {
         _dir *= pupilmoveDistance;
 

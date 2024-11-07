@@ -1,5 +1,9 @@
+using DG.Tweening;
+using Mono.CSharp.yyParser;
 using QFSW.QC;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -12,7 +16,7 @@ public class Eye_Agent : NetworkBehaviour
     [Header("Reference")]
     [SerializeField] private TMP_FontAsset font;
     [SerializeField] private TextMeshPro nameLabel;
-    private NetworkVariable<Vector2> movementInput = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private Vector2 movementInput;
     private NetworkVariable<float> creationTime = new NetworkVariable<float>();
 
     private Rigidbody2D rb;
@@ -32,7 +36,6 @@ public class Eye_Agent : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        eyeBrain = transform.GetComponentInParent<Eye_Brain>();
         score.OnValueChanged += HandleScoreChanged;
 
         if (IsServer)
@@ -43,14 +46,20 @@ public class Eye_Agent : NetworkBehaviour
 
         if (IsClient)
         {
-            //eyeBrain.username.OnValueChanged += HandleNameChanged;
-            eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
-
-            HandleNameChanged("", eyeBrain.username.Value);
-            HandleEyeColorChanged(Color.blue, eyeBrain.eyeColor.Value);
-            //nameLabel.font = Instantiate(font);
-            //nameLabel.font.material.SetColor(ShaderUtilities.ID_OutlineColor, eyeBrain.eyeColor.Value);
+            StartCoroutine(LateInit());
         }
+    }
+
+    private IEnumerator LateInit()
+    {
+        yield return new WaitUntil(() => transform.GetComponentInParent<Eye_Brain>() != null);
+        eyeBrain = transform.GetComponentInParent<Eye_Brain>();
+
+        eyeBrain.username.OnValueChanged += HandleNameChanged;
+        eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
+
+        HandleNameChanged("", eyeBrain.username.Value);
+        HandleEyeColorChanged(eyeBrain.eyeColor.Value, eyeBrain.eyeColor.Value);
     }
 
     private void HandleEyeColorChanged(Color previousValue, Color newValue)
@@ -65,28 +74,22 @@ public class Eye_Agent : NetworkBehaviour
         if (IsClient)
         {
             //eyeBrain.username.OnValueChanged -= HandleNameChanged;
-            eyeBrain.eyeColor.OnValueChanged -= HandleEyeColorChanged;
+            //eyeBrain.eyeColor.OnValueChanged -= HandleEyeColorChanged;
         }
         Debug.Log($"{NetworkObjectId} is Destroyed!");
-    }
-
-    public void Init()
-    {
-        eyeBrain = transform.GetComponentInParent<Eye_Brain>();
     }
 
     private void FixedUpdate()
     {
         if (IsClient)
         {
-            eyeAnimation.InputMovementAnimation(movementInput.Value.normalized);
         }
 
         if (IsOwner)
         {
-            Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
-            Vector2 _input = movementInput.Value;
+            eyeAnimation.InputMovementAnimationClientRpc(movementInput.normalized);
 
+           // Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
             //if (_viewport.x > 1)
             //    _input.x = 1;
             //if (_viewport.x < 0)
@@ -101,14 +104,8 @@ public class Eye_Agent : NetworkBehaviour
             //    return;
 
             //rb.velocity = movementInput.Value;
-            rb.AddForce(_input, ForceMode2D.Force);
+            rb.AddForce(movementInput, ForceMode2D.Force);
         }
-    }
-
-    private float CalculateMappedValue(float input, float minInput, float maxInput, float minOutput, float maxOutput)
-    {
-        float normalized = (input - minInput) / (maxInput - minInput);
-        return Mathf.Lerp(maxOutput, minOutput, normalized);
     }
 
     private void HandleNameChanged(FixedString32Bytes previousValue, FixedString32Bytes newValue)
@@ -131,13 +128,13 @@ public class Eye_Agent : NetworkBehaviour
     [Command("AgentMove")]
     public void MoveInput(Vector2 dir)
     {
-        movementInput.Value = dir;
+        movementInput = dir;
     }
 
     [Command]
     public void SetScale(float newScale)
     {
-        transform.localScale = new Vector3(newScale, newScale, newScale);
+        transform.DOScale(new Vector3(newScale, newScale, newScale), 0.3f);
         eyePhysics.RePlaceCircles();
     }
 
@@ -145,9 +142,9 @@ public class Eye_Agent : NetworkBehaviour
     {
         if (IsOwner)
         {
-            float newScale = (float)((double)newValue / (double)100);
+            float newScale = (float)((double)newValue / (double)120);
             SetScale(newScale);
-            rb.mass = (float)((double)newValue / (double) 500);
+            rb.mass = (float)((double)newValue / (double)600);
         }
 
         if (IsServer)

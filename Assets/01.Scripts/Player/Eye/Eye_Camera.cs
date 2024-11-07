@@ -36,12 +36,12 @@ public class Eye_Camera : NetworkBehaviour
             eyeBrain.TotalScore.OnValueChanged += (int prevValue, int newValue) =>
             {
                 currentOthoSize = Mathf.Clamp((float)((double)newValue / (double)150) * 10, minOthoSize, float.MaxValue);
-                AdjustOthoSize(newValue);
+                AdjustOthoSize(currentOthoSize);
             };
         }
     }
 
-    private void AdjustOthoSize(int newValue)
+    private void AdjustOthoSize(float newValue)
     {
         cam.m_Lens.OrthographicSize = newValue;
     }

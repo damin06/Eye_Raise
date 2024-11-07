@@ -29,18 +29,14 @@ public class Panel_Lobby : UI_Panel
     [Command]
     private async void RefreshLobbiesList()
     {
-        //LobbySingleton.Instance.PrintLobbies();
         foreach(Transform lobby in content.transform)
         {
             Destroy(lobby.gameObject);
         }
 
         List<Lobby> lobbies = await LobbySingleton.Instance.GetLobbiesList();
-        Debug.Log("Lobbies found:" + lobbies.Count);
-
         foreach (Lobby newLobby in lobbies)
         {
-            Debug.Log(newLobby.Name);
             Button_Lobby newButton = (Button_Lobby)Instantiate(lobbyBtn, content.transform);
             newButton.SetLobby(newLobby);
         }
