@@ -52,7 +52,7 @@ Material:
     m_Colors:
     - _EyelidScale: {r: 1.8, g: 2, b: 2, a: 0}
     - _InSideColor: {r: 1, g: 1, b: 1, a: 1}
-    - _IrisColor: {r: 0, g: 0.043137256, b: 0.9215687, a: 1}
+    - _IrisColor: {r: 1, g: 0.3872941, b: 0, a: 1}
     - _IrisPos: {r: 0, g: 0, b: 0, a: 0}
     - _IrisRadiusVec: {r: 0.72, g: 1.147, b: 0, a: 0}
     - _OutSideColor: {r: 0, g: 0, b: 0, a: 1}

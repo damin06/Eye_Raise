@@ -76,15 +76,10 @@ public class Eye_Agent : NetworkBehaviour
             //eyeBrain.username.OnValueChanged -= HandleNameChanged;
             //eyeBrain.eyeColor.OnValueChanged -= HandleEyeColorChanged;
         }
-        Debug.Log($"{NetworkObjectId} is Destroyed!");
     }
 
     private void FixedUpdate()
     {
-        if (IsClient)
-        {
-        }
-
         if (IsOwner)
         {
             eyeAnimation.InputMovementAnimationClientRpc(movementInput.normalized);
@@ -118,7 +113,6 @@ public class Eye_Agent : NetworkBehaviour
         nameLabel.text = name;
     }
 
-
     [Command]
     public void SetEyeColor(Color newColor)
     {
@@ -144,7 +138,7 @@ public class Eye_Agent : NetworkBehaviour
         {
             float newScale = (float)((double)newValue / (double)120);
             SetScale(newScale);
-            rb.mass = (float)((double)newValue / (double)600);
+            rb.mass = (float)((double)newValue / (double)530);
         }
 
         if (IsServer)

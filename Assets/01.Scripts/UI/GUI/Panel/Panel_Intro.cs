@@ -9,11 +9,11 @@ using TMPro;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.VisualScripting;
 using Sequence = DG.Tweening.Sequence;
-using Utill = Util.Util;
 using System.Threading.Tasks;
 using Firebase;
 using UnityEngine.Purchasing;
 using Unity.Services.Authentication;
+using Utill = Util.Util;
 
 
 [Serializable]

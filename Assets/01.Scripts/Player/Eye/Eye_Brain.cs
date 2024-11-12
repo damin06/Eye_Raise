@@ -5,7 +5,6 @@ using System.Linq;
 using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -125,7 +124,12 @@ public class Eye_Brain : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void SplitAgentServerRpc(Vector2 _pos)
+    private void CreateAgentServerRpc(int socre = 100, Vector3 pos = default)
+    {
+        CreateAgent(socre, pos);
+    }
+
+    private void SplitAgent(Vector2 _pos)
     {
         foreach(var _agent in eyeAgents)
         {
@@ -136,14 +140,14 @@ public class Eye_Brain : NetworkBehaviour
             if(_agentObj.TryGetComponent(out Eye_Agent _eyeAgent))
             {
                 _eyeAgent.score.Value /= 2;
-                //Vector2 _spawnPos = _eyeAgent.transform.InverseTransformPoint((Vector2)_eyeAgent.transform.position + _pos * 2.5f);
+
                 ulong _newAgentObjId;
-                CreateAgent(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.position);
+                CreateAgentServerRpc(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.position);
 
                 var _newAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_newAgentObjId];
-                if(_newAgent.TryGetComponent(out Rigidbody2D _rb))
+                if (_newAgent.TryGetComponent(out Rigidbody2D _rb))
                 {
-                    _rb.AddForce(_pos * splitForce, ForceMode2D.Impulse);
+                    _rb.AddForce(_pos - (Vector2)_newAgent.transform.position * splitForce, ForceMode2D.Impulse);
                     Debug.Log("AddForce" + _pos);
                     Debug.Log($"Original AgentPos : {_agentObj.transform.position} New AgentPos : {_newAgent.transform.position} Distance : {Vector2.Distance(_agentObj.transform.position, _newAgent.transform.position)}");
                 }
@@ -203,17 +207,15 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleAimPosition(Vector2 vector)
     {
-        //Vector3 mouseWorldPosition = Camera.main.WorldToScreenPoint(vector);
-        //aimPos = (mouseWorldPosition - Camera.main.ViewportToWorldPoint(Vector3.one / 2)).normalized;
-
-        Vector3 mousePos = Camera.main.ViewportToWorldPoint(vector);
+        Vector3 mousePos = Camera.main.ScreenToWorldPoint(vector);
         mousePos.z = 0;
-        aimPos = (mousePos - mainAgent.transform.position).normalized;
+        //aimPos = (mousePos - mainAgent.transform.position).normalized;
+        aimPos = mousePos;
     }
-
+     
     private void HandleSplit()
     {
-        SplitAgentServerRpc(aimPos);
+        SplitAgent(aimPos);
     }
 
     private void HandleNameChanged(FixedString32Bytes prev, FixedString32Bytes newValue)
