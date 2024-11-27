@@ -17,6 +17,7 @@ public class Eye_Brain : NetworkBehaviour
     [SerializeField] private int minSplitPoint = 100;
     [SerializeField] private float mergeableTime = 30f;
     [SerializeField] private float splitForce = 2f;
+
     public float MergeableTime => mergeableTime;
     private Vector2 aimPos;
     public ulong LastHitDealerID;
@@ -52,10 +53,9 @@ public class Eye_Brain : NetworkBehaviour
 
         if (IsOwner)
         {
-            eyeAgents.OnListChanged      += HandleAgentsListChanged;
-
-            inputReader.MovementEvent    += HandleMovement;
-            inputReader.SplitEvent       += HandleSplit;
+            eyeAgents.OnListChanged += HandleAgentsListChanged;
+            inputReader.MovementEvent += HandleMovement;
+            inputReader.SplitEvent += HandleSplit;
             inputReader.AimPositionEvent += HandleAimPosition;
             inputReader.MouseScrollEvent += HandleMousScroll;
 
@@ -73,50 +73,63 @@ public class Eye_Brain : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        username.OnValueChanged -= HandleNameChanged;
+        eyeColor.OnValueChanged -= HandleEyeColorChanged;
+
+        if (IsServer)
+        {
+            totalScore.OnValueChanged -= HandleTotalScoreChanged;
+        }
+
         if (IsOwner)
         {
-            inputReader.MovementEvent    -= HandleMovement;
-            inputReader.SplitEvent       -= HandleSplit;
+            eyeAgents.OnListChanged -= HandleAgentsListChanged;
+            inputReader.MovementEvent -= HandleMovement;
+            inputReader.SplitEvent -= HandleSplit;
             inputReader.AimPositionEvent -= HandleAimPosition;
-            eyeAgents.OnListChanged      -= HandleAgentsListChanged;
             inputReader.MouseScrollEvent -= HandleMousScroll;
         }
 
         if (IsServer)
         {
-            OnPlayerDeSpawned?.Invoke(this);
-            totalScore.OnValueChanged -= HandleTotalScoreChanged;
+            //OnPlayerDeSpawned?.Invoke(this);
         }
     }
 
-    private void CreateAgent(int socre = 100, Vector3 pos = default)
+    /*
+        [ServerRpc]
+        private void CreateAgentServerRpc(out ulong networkObjectId, int score = 100, Vector3 pos = default)
+        {
+            CreateAgent(out networkObjectId, score, pos);
+        }
+    */
+
+    public void CreateAgent(int score = 100, Vector3 pos = default)
     {
-        CreateAgent(out ulong networkObjectId, socre, pos);
+        CreateAgent(out ulong networkObjectId, score, pos);
     }
 
-    private void CreateAgent(out ulong networkObjectId, int socre = 100, Vector3 pos = default)
+    private void CreateAgent(out ulong networkObjectId, int score = 100, Vector3 pos = default)
     {
-        GameObject _newAgent = Instantiate(eyeAgentObj, transform);
-        //_newAgent.transform.position = Vector3.zero;
+        GameObject newAgent = Instantiate(eyeAgentObj, transform);
         networkObjectId = default;
 
-        if (_newAgent.TryGetComponent(out NetworkObject _network))
+        if (newAgent.TryGetComponent(out NetworkObject network))
         {
-            _network.SpawnAsPlayerObject(OwnerClientId);
-            _network.TrySetParent(transform);
-            _newAgent.transform.position = pos;
-            networkObjectId = _network.NetworkObjectId;
+            network.SpawnAsPlayerObject(OwnerClientId);
+            network.TrySetParent(transform);
+            newAgent.transform.position = pos;
+            networkObjectId = network.NetworkObjectId;
 
             eyeAgents.Add(new EyeEntityState
             {
-                networkObjectId = _network.NetworkObjectId,
-                score = socre
+                networkObjectId = network.NetworkObjectId,
+                score = score
             });
 
-            if (_newAgent.TryGetComponent(out Eye_Agent _agent))
+            if (newAgent.TryGetComponent(out Eye_Agent agent))
             {
-                _agent.score.Value = socre;
-                //_agent.SetEyeColor(eyeColor.Value);
+                agent.score.Value = score;
             }
         }
 
@@ -124,35 +137,36 @@ public class Eye_Brain : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void CreateAgentServerRpc(int socre = 100, Vector3 pos = default)
+    private void SplitAgentServerRpc(Vector2 _pos)
     {
-        CreateAgent(socre, pos);
-    }
-
-    private void SplitAgent(Vector2 _pos)
-    {
-        foreach(var _agent in eyeAgents)
+        foreach (var _agent in eyeAgents)
         {
             if (_agent.score < minSplitPoint)
                 continue;
 
             var _agentObj = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_agent.networkObjectId];
-            if(_agentObj.TryGetComponent(out Eye_Agent _eyeAgent))
+            if (_agentObj.TryGetComponent(out Eye_Agent _eyeAgent))
             {
                 _eyeAgent.score.Value /= 2;
 
                 ulong _newAgentObjId;
-                CreateAgentServerRpc(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.position);
+                CreateAgent(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.position);
+                Debug.Log($"NewAgentId : {_newAgentObjId}");
 
                 var _newAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_newAgentObjId];
-                if (_newAgent.TryGetComponent(out Rigidbody2D _rb))
-                {
-                    _rb.AddForce(_pos - (Vector2)_newAgent.transform.position * splitForce, ForceMode2D.Impulse);
-                    Debug.Log("AddForce" + _pos);
-                    Debug.Log($"Original AgentPos : {_agentObj.transform.position} New AgentPos : {_newAgent.transform.position} Distance : {Vector2.Distance(_agentObj.transform.position, _newAgent.transform.position)}");
-                }
-
+                AddForceAgentClientRpc(_newAgentObjId, _pos - (Vector2)_newAgent.transform.position, splitForce);
             }
+        }
+    }
+
+    [ClientRpc]
+    private void AddForceAgentClientRpc(ulong agentId, Vector2 dir, float force)
+    {
+        var _agentObj = NetworkManager.Singleton.SpawnManager.SpawnedObjects[agentId];
+        if (_agentObj.TryGetComponent(out Rigidbody2D _rb))
+        {
+            _rb.AddForce(dir * force, ForceMode2D.Impulse);
+            Debug.Log($"Original AgentPos : {_agentObj.transform.position} New AgentPos : {_agentObj.transform.position} Distance : {Vector2.Distance(_agentObj.transform.position, _agentObj.transform.position)}");
         }
     }
 
@@ -212,10 +226,10 @@ public class Eye_Brain : NetworkBehaviour
         //aimPos = (mousePos - mainAgent.transform.position).normalized;
         aimPos = mousePos;
     }
-     
+
     private void HandleSplit()
     {
-        SplitAgent(aimPos);
+        SplitAgentServerRpc(aimPos);
     }
 
     private void HandleNameChanged(FixedString32Bytes prev, FixedString32Bytes newValue)
@@ -227,9 +241,9 @@ public class Eye_Brain : NetworkBehaviour
         }
     }
 
-    private void HandleEyeColorChanged(Color prev , Color newValue)
+    private void HandleEyeColorChanged(Color prev, Color newValue)
     {
-        foreach(var agent in eyeAgents)
+        foreach (var agent in eyeAgents)
         {
 
         }
@@ -237,9 +251,10 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleAgentsListChanged(NetworkListEvent<EyeEntityState> evt)
     {
-        if(evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove && eyeAgents.Count <= 0)
+        if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove && eyeAgents.Count <= 0)
         {
             HandleDie();
+            return;
         }
 
         UpdateTotalScore(evt.Value);
@@ -248,13 +263,14 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleDie()
     {
+        totalScore.Value = 0;
         OnPlayerDeSpawned?.Invoke(this);
         NetworkObject.Despawn(true);
     }
 
     public void RemoveAgent(ulong networkObjectId)
     {
-        for(int i = 0; i < eyeAgents.Count; i++)
+        for (int i = 0; i < eyeAgents.Count; i++)
         {
             if (eyeAgents[i].networkObjectId != networkObjectId)
                 continue;
@@ -292,7 +308,6 @@ public class Eye_Brain : NetworkBehaviour
             }
 
             mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[newMainAgent.networkObjectId];
-            //cam.Follow = mainAgent.transform;
         }
         else
         {
@@ -303,7 +318,6 @@ public class Eye_Brain : NetworkBehaviour
                 return;
 
             mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
-            //cam.Follow = mainAgent.transform;
         }
     }
     private void UpdateTotalScore(EyeEntityState value)
@@ -316,7 +330,6 @@ public class Eye_Brain : NetworkBehaviour
         }
 
         totalScore.Value = newScore;
-        //AdjustZoom(totalScore.Value);
     }
 
     private void HandleMovement(Vector2 movementInput)

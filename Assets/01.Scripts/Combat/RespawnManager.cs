@@ -5,35 +5,17 @@ using PlayerInGame;
 
 public class RespawnManager : NetworkBehaviour
 {
+    [SerializeField] private MapRange mapRange;
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-        Player.OnPlayerDeSpawned += HandlePlayerDeSpawn;
-        Eye_Brain.OnPlayerSpawned += HandlePlayerDeSpawn;
+        Eye_Brain.OnPlayerDeSpawned += HandlePlayerDeSpawn;
     }
 
     public override void OnNetworkDespawn()
     {
         if (!IsServer) return;
-        Player.OnPlayerDeSpawned -= HandlePlayerDeSpawn;
-        Eye_Brain.OnPlayerSpawned -= HandlePlayerDeSpawn;
-    }
-
-
-    private void HandlePlayerDeSpawn(Player player)
-    {
-        ulong killerID = player.HealthCompo.LastHitDealerID;
-        UserData killerUserdata = ServerSingleton.Instance.NetServer.GetUserDataByClientID(killerID);
-        UserData victimUserData = ServerSingleton.Instance.NetServer.GetUserDataByClientID(player.OwnerClientId);
-
-        RankBoardBehaviour.Instance.UpdateScore(player.OwnerClientId, 0);
-
-        if (victimUserData != null)
-        {
-            Debug.Log($"{victimUserData.username} is dead by {killerUserdata.username} [{killerID}]");
-            
-            StartCoroutine(DelayRespawn(player.OwnerClientId));
-        }
+        Eye_Brain.OnPlayerDeSpawned -= HandlePlayerDeSpawn;
     }
 
     private void HandlePlayerDeSpawn(Eye_Brain player)
@@ -48,15 +30,15 @@ public class RespawnManager : NetworkBehaviour
         {
             Debug.Log($"{victimUserData.username} is dead by {killerUserdata.username} [{killerID}]");
 
-            StartCoroutine(DelayRespawn(player.OwnerClientId));
+            StartCoroutine(DelayRespawn(player));
         }
 
     }
 
 
-    IEnumerator DelayRespawn(ulong clientID)
+    IEnumerator DelayRespawn(Eye_Brain player)
     {
         yield return new WaitForSeconds(3f);
-        ServerSingleton.Instance.NetServer.RespawnPlayer(clientID);
+        player.CreateAgent(100, mapRange.GetRandomSpawnPos());
     }
 }

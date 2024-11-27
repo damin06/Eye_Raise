@@ -4,6 +4,7 @@ using QFSW.QC;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -13,28 +14,36 @@ using UnityEngine.TextCore.Text;
 
 public class Eye_Agent : NetworkBehaviour
 {
-    [Header("Reference")]
-    [SerializeField] private TMP_FontAsset font;
-    [SerializeField] private TextMeshPro nameLabel;
-    private Vector2 movementInput;
-    private NetworkVariable<float> creationTime = new NetworkVariable<float>();
-
+    [Header("Components")]
     private Rigidbody2D rb;
     private Eye_Animation eyeAnimation;
     private Eye_Physics eyePhysics;
+    private Eye_Brain eyeBrain;
 
+    [Header("Network Variables")]
     public NetworkVariable<int> score = new NetworkVariable<int>();
-    private Eye_Brain eyeBrain = null;
-    public bool canMerge => creationTime.Value + eyeBrain.MergeableTime < Time.time;
+    private NetworkVariable<float> creationTime = new NetworkVariable<float>();
+
+    [Header("UI")]
+    [SerializeField] private TextMeshPro nameLabel;
+    [SerializeField] private TMP_FontAsset font;
+
+    public bool CanMerge => creationTime.Value + eyeBrain.MergeableTime < Time.time;
+    private Vector2 movementInput;
 
     private void Awake()
+    {
+        InitializeComponents();
+    }
+
+    private void InitializeComponents()
     {
         rb = GetComponent<Rigidbody2D>();
         eyeAnimation = GetComponent<Eye_Animation>();
         eyePhysics = GetComponent<Eye_Physics>();
     }
 
-    public override void OnNetworkSpawn()
+    public override async void OnNetworkSpawn()
     {
         score.OnValueChanged += HandleScoreChanged;
 
@@ -46,20 +55,16 @@ public class Eye_Agent : NetworkBehaviour
 
         if (IsClient)
         {
-            StartCoroutine(LateInit());
+            await new WaitUntil(() => transform.GetComponentInParent<Eye_Brain>() != null);
+
+            eyeBrain = transform.GetComponentInParent<Eye_Brain>();
+
+            eyeBrain.username.OnValueChanged += HandleNameChanged;
+            eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
+
+            HandleNameChanged("", eyeBrain.username.Value);
+            HandleEyeColorChanged(eyeBrain.eyeColor.Value, eyeBrain.eyeColor.Value);
         }
-    }
-
-    private IEnumerator LateInit()
-    {
-        yield return new WaitUntil(() => transform.GetComponentInParent<Eye_Brain>() != null);
-        eyeBrain = transform.GetComponentInParent<Eye_Brain>();
-
-        eyeBrain.username.OnValueChanged += HandleNameChanged;
-        eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
-
-        HandleNameChanged("", eyeBrain.username.Value);
-        HandleEyeColorChanged(eyeBrain.eyeColor.Value, eyeBrain.eyeColor.Value);
     }
 
     private void HandleEyeColorChanged(Color previousValue, Color newValue)
@@ -84,7 +89,7 @@ public class Eye_Agent : NetworkBehaviour
         {
             eyeAnimation.InputMovementAnimationClientRpc(movementInput.normalized);
 
-           // Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
+            // Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
             //if (_viewport.x > 1)
             //    _input.x = 1;
             //if (_viewport.x < 0)
@@ -143,7 +148,7 @@ public class Eye_Agent : NetworkBehaviour
 
         if (IsServer)
         {
-            if(eyeBrain == null)
+            if (eyeBrain == null)
             {
                 eyeBrain = transform.GetComponentInParent<Eye_Brain>();
             }
@@ -154,7 +159,7 @@ public class Eye_Agent : NetworkBehaviour
 
     private void MergeAgent(Eye_Agent agent)
     {
-        if(agent.OwnerClientId != OwnerClientId)
+        if (agent.OwnerClientId != OwnerClientId)
         {
             eyeBrain.LastHitDealerID = agent.OwnerClientId;
         }
@@ -169,25 +174,25 @@ public class Eye_Agent : NetworkBehaviour
         if (!IsServer)
             return;
 
-        if(collision.TryGetComponent(out Point _point))
+        if (collision.TryGetComponent(out Point _point))
         {
             Debug.Log(_point.name + "Hit!" + _point.point.Value.ToString());
             score.Value += _point.point.Value;
 
             ScoreManager.Instance.ReturnPoint(collision.GetComponent<NetworkObject>());
         }
-        
-        if(collision.TryGetComponent(out Eye_Agent _agent))
+
+        if (collision.TryGetComponent(out Eye_Agent _agent))
         {
             if (_agent.score.Value > score.Value)
                 return;
 
-            if(_agent.OwnerClientId != OwnerClientId)
+            if (_agent.OwnerClientId != OwnerClientId)
             {
                 Debug.Log($"{_agent.OwnerClientId} Is Deady By {OwnerClientId}");
                 MergeAgent(_agent);
             }
-            else if(canMerge && _agent.canMerge && _agent.OwnerClientId == OwnerClientId)
+            else if (CanMerge && _agent.CanMerge && _agent.OwnerClientId == OwnerClientId)
             {
                 MergeAgent(_agent);
                 Debug.Log($"{_agent.OwnerClientId} Is Merged!");

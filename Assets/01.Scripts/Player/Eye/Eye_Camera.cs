@@ -7,13 +7,15 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class Eye_Camera : NetworkBehaviour
 {
-    [SerializeField] private CinemachineVirtualCamera cam;
+    [Header("Camera Settings")]
+    [SerializeField] private CinemachineVirtualCamera virtualCamera;
     [SerializeField] private Transform followTarget;
     [SerializeField] private float followSpeed = 5f;
-    [SerializeField] private float minFov = 1f;
-    [SerializeField] private float maxFov = 5f;
-    [SerializeField] private float minOthoSize = 10;
-    private float currentOthoSize = 10;
+
+    [Header("Zoom Settings")]
+    [SerializeField] private float minOrthoSize = 10f;
+    [SerializeField] private float maxOrthoSize = 50f;
+    private float currentOrthoSize = 10f;
 
     private Eye_Brain eyeBrain;
 
@@ -24,25 +26,35 @@ public class Eye_Camera : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 targetPosition = eyeBrain.GetCenterOfAgents(); // 목표 위치
-        followTarget.transform.position = Vector3.Lerp(followTarget.transform.position, targetPosition, followSpeed * Time.deltaTime);
+        if (!IsOwner) return;
+        UpdateCameraPosition();
+    }
+
+    private void UpdateCameraPosition()
+    {
+        Vector3 targetPosition = eyeBrain.GetCenterOfAgents();
+        followTarget.position = Vector3.Lerp(
+            followTarget.position,
+            targetPosition,
+            followSpeed * Time.deltaTime
+        );
     }
 
     public override void OnNetworkSpawn()
     {
-        if (IsOwner) 
+        if (IsOwner)
         {
-            cam.Priority = 15;
+            virtualCamera.Priority = 15;
             eyeBrain.TotalScore.OnValueChanged += (int prevValue, int newValue) =>
             {
-                currentOthoSize = Mathf.Clamp((float)((double)newValue / (double)150) * 10, minOthoSize, float.MaxValue);
-                AdjustOthoSize(currentOthoSize);
+                currentOrthoSize = Mathf.Clamp((float)((double)newValue / (double)150) * 10, minOrthoSize, float.MaxValue);
+                AdjustOthoSize(currentOrthoSize);
             };
         }
     }
 
     private void AdjustOthoSize(float newValue)
     {
-        cam.m_Lens.OrthographicSize = newValue;
+        virtualCamera.m_Lens.OrthographicSize = newValue;
     }
 }

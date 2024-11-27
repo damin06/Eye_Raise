@@ -7,9 +7,7 @@ using UnityEditor;
 public class ScoreManager : NetworkBehaviour
 {
     public static ScoreManager Instance { get; private set; }
-
-    public Vector2 minSpawnPos;
-    public Vector2 maxSpawnPos;
+    [SerializeField] private MapRange mapRange;
     [SerializeField] private int maxSpawnCount;
     [SerializeField] private int minSpawnCount;
     [SerializeField] private float minScale;
@@ -33,9 +31,9 @@ public class ScoreManager : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if(IsServer)
+        if (IsServer)
         {
-            
+
         }
     }
 
@@ -44,13 +42,13 @@ public class ScoreManager : NetworkBehaviour
         if (!IsServer || points.Count > maxSpawnCount)
             return;
 
-        if(points.Count < minSpawnCount || m_lastSpawnedTime + 2 < Time.time)
+        if (points.Count < minSpawnCount || m_lastSpawnedTime + 2 < Time.time)
         {
             m_lastSpawnedTime = Time.time;
             SpawnPoint(new Vector2
                 (
-                    Random.Range(minSpawnPos.x, maxSpawnPos.x),
-                    Random.Range(minSpawnPos.y, maxSpawnPos.y)
+                    mapRange.GetRandomSpawnPos().x,
+                    mapRange.GetRandomSpawnPos().y
                 ),
                     Random.Range(minScale, maxScale),
                     Random.ColorHSV(0f, 1f, 0.9f, 1f, 0.9f, 1f)
@@ -62,16 +60,16 @@ public class ScoreManager : NetworkBehaviour
     {
         var _newPoint = NetworkObjectPool.Instance.GetNetworkObject("Point", position, Quaternion.identity);
 
-        if(_newPoint.TryGetComponent(out Point _point))
+        if (_newPoint.TryGetComponent(out Point _point))
         {
             points.Add(_point);
             _point.color.Value = color;
             _point.point.Value = Random.Range(1, 6);
-            _point.transform.localScale = new Vector2(scale, scale); 
+            _point.transform.localScale = new Vector2(scale, scale);
         }
     }
 
-    public void SpawnPlayerPoint(int point,Vector3 position, Color color)
+    public void SpawnPlayerPoint(int point, Vector3 position, Color color)
     {
         var _newPoint = NetworkObjectPool.Instance.GetNetworkObject("Point", position, Quaternion.identity);
 
@@ -85,7 +83,7 @@ public class ScoreManager : NetworkBehaviour
 
     public void ReturnPoint(NetworkObject point)
     {
-        if(point.TryGetComponent(out Point _point))
+        if (point.TryGetComponent(out Point _point))
         {
             points.Remove(_point);
             _point.ActiveClientRpc(false);
@@ -95,16 +93,3 @@ public class ScoreManager : NetworkBehaviour
     }
 
 }
-
-#if (UNITY_EDITOR) 
-[CustomEditor(typeof(ScoreManager)), CanEditMultipleObjects]
-public class ScoreManagerEditor : Editor
-{
-    private void OnSceneGUI()
-    {
-        ScoreManager manager = (ScoreManager)target;
-        manager.minSpawnPos = Handles.PositionHandle(manager.minSpawnPos, Quaternion.identity);
-        manager.maxSpawnPos = Handles.PositionHandle(manager.maxSpawnPos, Quaternion.identity);
-    }
-}
-#endif
