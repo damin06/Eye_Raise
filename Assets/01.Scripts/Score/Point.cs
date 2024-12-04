@@ -5,40 +5,29 @@ using UnityEngine;
 
 public class Point : NetworkBehaviour
 {
-    public NetworkVariable<int> point = new NetworkVariable<int>(1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    public NetworkVariable<bool> isUserPoint = new NetworkVariable<bool>();
-    public NetworkVariable<Color> color = new NetworkVariable<Color>(Color.blue);
+    public NetworkVariable<int> Score = new NetworkVariable<int>();
+    public NetworkVariable<ulong> PointOwner = new NetworkVariable<ulong>();
+    public NetworkVariable<Color> PointColor = new NetworkVariable<Color>(Color.blue);
 
     public override void OnNetworkSpawn()
     {
         if (IsClient)
         {
-            HandleColorChanged(color.Value, color.Value);
-            color.OnValueChanged += HandleColorChanged;
+            PointColor.OnValueChanged += HandleColorChanged;
+            HandleColorChanged(PointColor.Value, PointColor.Value);
         }
 
         if (IsServer)
         {
-            isUserPoint.OnValueChanged += HandlePointOwnerChanged;
+
         }
     }
 
-    private void HandlePointOwnerChanged(bool previousValue, bool newValue)
-    {
-        //if (newValue)
-        //{
-        //    transform.localScale = Vector3.one;
-        //}
-        //else
-        //{
-        //    float newScale = Random.Range(0.6f, 0.75f);
-        //    transform.localScale = new Vector3(newScale, newScale, newScale);
-        //}
-    }
+
 
     private void HandleColorChanged(Color previousValue, Color newValue)
     {
-        if(TryGetComponent(out SpriteRenderer _sprite))
+        if (TryGetComponent(out SpriteRenderer _sprite))
         {
             _sprite.color = newValue;
         }

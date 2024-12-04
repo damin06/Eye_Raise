@@ -1,38 +1,29 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class UI_EventHandler : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IPointerMoveHandler, IPointerEnterHandler, IPointerExitHandler/*, IDragHandler, IEndDragHandler, IBeginDragHandler*/
+/// <summary>
+/// UI 이벤트를 처리하는 핸들러 클래스입니다.
+/// 포인터 관련 이벤트(클릭, 드래그 등)를 처리합니다.
+/// </summary>
+public class UI_EventHandler : MonoBehaviour,
+    IPointerClickHandler,
+    IPointerDownHandler,
+    IPointerUpHandler,
+    IPointerMoveHandler,
+    IPointerEnterHandler,
+    IPointerExitHandler
 {
-    public Action<PointerEventData, Transform> OnClickHandler;
-    public Action<PointerEventData, Transform> OnDownHandler;
-    public Action<PointerEventData, Transform> OnMoveHandler;
-    public Action<PointerEventData, Transform> OnUpHandler;
+    #region Event Actions
+    public Action<PointerEventData, Transform> OnClickHandler { get; set; }
+    public Action<PointerEventData, Transform> OnDownHandler { get; set; }
+    public Action<PointerEventData, Transform> OnMoveHandler { get; set; }
+    public Action<PointerEventData, Transform> OnUpHandler { get; set; }
+    public Action<PointerEventData, Transform> OnEnterHandler { get; set; }
+    public Action<PointerEventData, Transform> OnExitHandler { get; set; }
+    #endregion
 
-    public Action<PointerEventData, Transform> OnEnterHandler;
-    public Action<PointerEventData, Transform> OnExitHandler;
-
-    //public Action<PointerEventData, Transform> OnBeginDragHandler;
-    //public Action<PointerEventData, Transform> OnDragHandler;
-    //public Action<PointerEventData, Transform> OnEndDragHandler;
-
-    //public void OnBeginDrag(PointerEventData eventData)
-    //{
-    //    OnBeginDragHandler?.Invoke(eventData, transform);
-    //}
-
-    //public void OnDrag(PointerEventData eventData)
-    //{
-    //    OnDragHandler?.Invoke(eventData, transform);
-    //}
-
-    //public void OnEndDrag(PointerEventData eventData)
-    //{
-    //    OnEndDragHandler?.Invoke(eventData, transform);
-    //}
-
+    #region Interface Implementations
     public void OnPointerClick(PointerEventData eventData)
     {
         OnClickHandler?.Invoke(eventData, transform);
@@ -62,4 +53,5 @@ public class UI_EventHandler : MonoBehaviour, IPointerClickHandler, IPointerDown
     {
         OnUpHandler?.Invoke(eventData, transform);
     }
+    #endregion
 }

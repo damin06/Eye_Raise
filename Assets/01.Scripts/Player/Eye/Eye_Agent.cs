@@ -176,10 +176,15 @@ public class Eye_Agent : NetworkBehaviour
 
         if (collision.TryGetComponent(out Point _point))
         {
-            Debug.Log(_point.name + "Hit!" + _point.point.Value.ToString());
-            score.Value += _point.point.Value;
+            Debug.Log(_point.name + "Hit!" + _point.Score.Value.ToString());
+            score.Value += _point.Score.Value;
 
             ScoreManager.Instance.ReturnPoint(collision.GetComponent<NetworkObject>());
+
+            if (GameManager.Instance.ServerId != _point.OwnerClientId && _point.OwnerClientId != OwnerClientId)
+            {
+
+            }
         }
 
         if (collision.TryGetComponent(out Eye_Agent _agent))

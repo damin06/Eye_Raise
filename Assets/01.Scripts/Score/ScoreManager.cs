@@ -4,9 +4,8 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEditor;
 
-public class ScoreManager : NetworkBehaviour
+public class ScoreManager : NetCodeSingleton<ScoreManager>
 {
-    public static ScoreManager Instance { get; private set; }
     [SerializeField] private MapRange mapRange;
     [SerializeField] private int maxSpawnCount;
     [SerializeField] private int minSpawnCount;
@@ -17,25 +16,6 @@ public class ScoreManager : NetworkBehaviour
 
     private List<Point> points = new List<Point>();
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(this);
-        }
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        if (IsServer)
-        {
-
-        }
-    }
 
     private void Update()
     {
@@ -63,8 +43,8 @@ public class ScoreManager : NetworkBehaviour
         if (_newPoint.TryGetComponent(out Point _point))
         {
             points.Add(_point);
-            _point.color.Value = color;
-            _point.point.Value = Random.Range(1, 6);
+            _point.PointColor.Value = color;
+            _point.Score.Value = Random.Range(1, 6);
             _point.transform.localScale = new Vector2(scale, scale);
         }
     }
@@ -75,9 +55,9 @@ public class ScoreManager : NetworkBehaviour
 
         if (_newPoint.TryGetComponent(out Point _point))
         {
-            _point.point.Value = point;
-            _point.isUserPoint.Value = true;
-            _point.color.Value = color;
+            _point.Score.Value = point;
+            _point.PointOwner.Value = OwnerClientId;
+            _point.PointColor.Value = color;
         }
     }
 

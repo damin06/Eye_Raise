@@ -3,7 +3,7 @@ using Unity.Netcode;
 using UnityEngine;
 using PlayerInGame;
 
-public class RespawnManager : NetworkBehaviour
+public class RespawnManager : NetCodeSingleton<RespawnManager>
 {
     [SerializeField] private MapRange mapRange;
     public override void OnNetworkSpawn()
