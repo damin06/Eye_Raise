@@ -42,16 +42,7 @@ public class Eye_Animation : NetworkBehaviour
     private void Update()
     {
         RePlaceMovementAnimation();
-
-        if (blinkDelay <= 0)
-        {
-            blinkDelay = 0;
-            Blink();
-        }
-        else
-        {
-            blinkDelay -= Time.deltaTime;
-        }
+        Blink();
     }
 
     [Command("SetEyeColor")]
@@ -73,13 +64,21 @@ public class Eye_Animation : NetworkBehaviour
         moveDir = Vector2.zero;
     }
 
-    float curValue = 0;
+    float curValue;
+    Vector3 elid;
+    float curEyelidValue;
     private void Blink()
     {
+        if (blinkDelay > 0)
+        {
+            blinkDelay -= Time.deltaTime;
+            return;
+        }
+
         curValue += Time.deltaTime * Random.Range(BlinkSpeed - 0.5f, BlinkSpeed + 0.5f);
 
-        float curEyelidValue = Mathf.Cos(curValue);
-        Vector3 elid = fillMaterial.GetVector("_EyelidScale");
+        curEyelidValue = Mathf.Cos(curValue);
+        elid = fillMaterial.GetVector("_EyelidScale");
         elid.y = curEyelidValue + 1;
         fillMaterial.SetVector("_EyelidScale", elid);
 

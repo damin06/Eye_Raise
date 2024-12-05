@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Util;
+using Util.Component;
+using Util.GameObject;
 
 /// <summary>
 /// UI 시스템의 기본 클래스입니다.
@@ -30,12 +32,12 @@ public abstract class UI_Base : MonoBehaviour
     protected virtual void Init() { }
 
     /// <summary>
-    /// 지정된 타입의 모든 자식 UI 컴포넌트를 찾아 바인딩합니다.
+    /// 지정된 타입의 모든 자식 UI 컴트를 찾아 바인딩합니다.
     /// </summary>
     /// <typeparam name="T">바인딩할 컴포넌트 타입</typeparam>
     protected void Bind<T>() where T : UnityEngine.Object
     {
-        var list = Util.Util.FindChilds<T>(gameObject);
+        var list = GameObjectUtils.FindChilds<T>(gameObject);
         foreach (T obj in list)
         {
             m_objects.Add(typeof(T), obj.name, obj);
@@ -63,7 +65,7 @@ public abstract class UI_Base : MonoBehaviour
     /// <param name="type">클릭 이벤트 타입</param>
     public static void BindEvent(GameObject obj, Action<PointerEventData, Transform> evt, Define.ClickType type = Define.ClickType.Click)
     {
-        UI_EventHandler handle = Util.Util.GetOrAddComponent<UI_EventHandler>(obj);
+        UI_EventHandler handle = ComponentUtils.GetOrAddComponent<UI_EventHandler>(obj);
 
         switch (type)
         {

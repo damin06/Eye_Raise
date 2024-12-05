@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Firebase;
 using UnityEngine.Purchasing;
 using Unity.Services.Authentication;
-using Utill = Util.Util;
+using Util.Math;
 
 
 [Serializable]
@@ -42,7 +42,7 @@ public class Panel_Intro : UI_Panel
     protected override void Init()
     {
         base.Init();
-        
+
         eye = Get<Button>("Button_Eye");
         title = Get<TextMeshProUGUI>("TMP_Title");
         nameInput = Get<TMP_InputField>("InputField_Name");
@@ -54,7 +54,7 @@ public class Panel_Intro : UI_Panel
 
         inputReader.AimPositionEvent += HandleAimPosition;
 
-        for(int i = 1; i <= 4; i++)
+        for (int i = 1; i <= 4; i++)
         {
             Image _arrow = Get<Image>($"Image_Arrow{i}");
             BindEvent(_arrow.gameObject, HandleOnEnterArrow, Define.ClickType.Enter);
@@ -160,7 +160,7 @@ public class Panel_Intro : UI_Panel
         (nameInput.transform as RectTransform).DOAnchorPosY(800f, 0.3f).SetEase(Ease.InBack);
     }
 
-#endregion
+    #endregion
 
     #region Login
 
@@ -249,17 +249,17 @@ public class Panel_Intro : UI_Panel
     {
         string newText = null;
 
-        if (arg0.Contains(@"[^0-9a-zA-Z°¡-ÆR]"))
+        if (arg0.Contains(@"[^0-9a-zA-Z-R]"))
         {
-            newText = "Æ¯¼ö¹®ÀÚ¸¦ Æ÷ÇÔÇÒ ¼ö ¾ø½À´Ï´Ù.";
-            nameInput.text = arg0.Replace(@"[^0-9a-zA-Z°¡-ÆR]", "");
+            newText = "Æ¯Ú¸  Ï´.";
+            nameInput.text = arg0.Replace(@"[^0-9a-zA-Z-R]", "");
         }
 
         for (int i = 0; i < forbiddenWords.Length; i++)
         {
             if (arg0.Contains(forbiddenWords[i]))
             {
-                newText = "±ÝÁöµÈ ¾ð¾î°¡ Æ÷ÇÔµÇ¾î ÀÖ½À´Ï´Ù.";
+                newText = "î°¡ ÔµÇ¾ Ö½Ï´.";
                 nameInput.text = newText.Replace(forbiddenWords[i], "");
             }
         }
@@ -281,15 +281,13 @@ public class Panel_Intro : UI_Panel
 
     private void HandleAimPosition(Vector2 vector)
     {
-        //Vector2 dir = (eyeScreenPoint - vector).normalized;
-        //Vector2 dir = ((Vector2)Camera.main.ScreenToViewportPoint(vector) - eyeScreenPoint).normalized;
         Vector2 input = Camera.main.ScreenToViewportPoint(vector);
         input.y += 0.5f;
         Vector2 dir = new Vector2
-            (
-                Utill.Remap(input.x, 0f, 1f, minRange, maxRange),
-                Utill.Remap(input.y, 0f, 1f, minRange, maxRange)
-            );
+        (
+            MathUtils.Remap(input.x, 0f, 1f, minRange, maxRange),
+            MathUtils.Remap(input.y, 0f, 1f, minRange, maxRange)
+        );
         eyeMaterial.SetVector("_IrisPos", dir);
     }
 

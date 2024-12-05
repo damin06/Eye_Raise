@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.U2D;
 using UnityEngine.UI;
 using UnityEditor;
-using Util;
+using Util.GameObject;
 
 public class AtlasLoader : MonoBehaviour
 {
@@ -87,7 +87,7 @@ public class AtlasLoader : MonoBehaviour
     //[MenuItem("Atlas/UnLoadSprites %&u")]
     public static void UnLoadSprites()
     {
-        List<AtlasLoader> _atlas = Util.Util.FindAllObjects<AtlasLoader>();
+        List<AtlasLoader> _atlas = GameObjectUtils.FindAllObjects<AtlasLoader>();
 
         foreach (AtlasLoader item in _atlas)
         {
@@ -100,7 +100,7 @@ public class AtlasLoader : MonoBehaviour
     //[MenuItem("Atlas/LoadSprites %&l")]
     public static void LoadSprites()
     {
-        List<AtlasLoader> _atlas = Util.Util.FindAllObjects<AtlasLoader>();
+        List<AtlasLoader> _atlas = GameObjectUtils.FindAllObjects<AtlasLoader>();
 
         foreach (AtlasLoader item in _atlas)
         {
