@@ -71,6 +71,12 @@ namespace Util.Math
 {
     internal static class MathUtils
     {
+        public static T RandomEnum<T>()
+        {
+            var enumValues = Enum.GetValues(enumType: typeof(T));
+            return (T)enumValues.GetValue(Random.Range(0, enumValues.Length));
+        }
+
         /// <summary>
         /// 지정된 범위 내에서 랜덤한 Vector3를 생성합니다.
         /// </summary>
