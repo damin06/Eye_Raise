@@ -42,13 +42,12 @@ public class Eye_Animation : NetworkBehaviour
     private void Update()
     {
         RePlaceMovementAnimation();
-        Blink();
     }
 
     [Command("SetEyeColor")]
-    public void SetEyeColor(Color newColor)
+    public void SetEyeColor(Color _newColor)
     {
-        fillMaterial.SetColor("_IrisColor", newColor);
+        fillMaterial.SetColor("_IrisColor", _newColor);
     }
 
     [ClientRpc]
@@ -64,34 +63,12 @@ public class Eye_Animation : NetworkBehaviour
         moveDir = Vector2.zero;
     }
 
-    float curValue;
     Vector3 elid;
-    float curEyelidValue;
-    private void Blink()
+    public void SetEyelid(float _eyelidValue)
     {
-        if (blinkDelay > 0)
-        {
-            blinkDelay -= Time.deltaTime;
-            return;
-        }
-
-        curValue += Time.deltaTime * Random.Range(BlinkSpeed - 0.5f, BlinkSpeed + 0.5f);
-
-        curEyelidValue = Mathf.Cos(curValue);
         elid = fillMaterial.GetVector("_EyelidScale");
-        elid.y = curEyelidValue + 1;
+        elid.y = _eyelidValue;
         fillMaterial.SetVector("_EyelidScale", elid);
-
-        if (curValue >= Mathf.PI * 2)
-        {
-            blinkDelay = Random.Range(minBlinkDelay, maxBlinkDelay);
-            curValue = 0;
-        }
-
-        if (IsOwner)
-        {
-            //VolumeManager.Instance.Vignette.intensity.value = Mathf.Sign(curValue);
-        }
     }
 
     private void RePlaceMovementAnimation()

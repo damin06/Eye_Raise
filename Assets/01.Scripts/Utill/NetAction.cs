@@ -1,19 +1,24 @@
 using System;
 using System.Collections.Generic;
 using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 /// <summary>
 /// 네트워크 환경에서 서버와 클라이언트 간의 이벤트 통신을 관리하는 클래스입니다.
 /// 서버-클라이언트 간 Action 호출을 안전하게 처리합니다.
 /// </summary>
-public class NetAction : NetworkBehaviour
+[Serializable]
+public class NetAction
 {
     #region Fields
-    /// <summary>
-    /// 클라이언트 ID를 키로 하여 해당 클라이언트의 Action 목록을 관리하는 딕셔너리입니다.
-    /// </summary>
-    private Dictionary<ulong, List<Action>> subscribers = new Dictionary<ulong, List<Action>>();
+    [FormerlySerializedAs("onClick")]
+    [SerializeField] 
+    private UnityEvent m_subscribers;
+
     #endregion
 
     #region Subscription Methods
@@ -21,24 +26,26 @@ public class NetAction : NetworkBehaviour
     /// 현재 클라이언트에 Action을 구독합니다.
     /// </summary>
     /// <param name="action">구독할 Action</param>
-    public void Subscribe(Action action)
+    public void Subscribe(UnityAction action)
     {
-        ulong clientId = NetworkManager.LocalClientId;
-        if (!subscribers.ContainsKey(clientId))
-            subscribers[clientId] = new List<Action>();
-
-        subscribers[clientId].Add(action);
+        m_subscribers.AddListener(action);
     }
 
     /// <summary>
     /// 현재 클라이언트에서 Action 구독을 해제합니다.
     /// </summary>
     /// <param name="action">구독 해제할 Action</param>
-    public void Unsubscribe(Action action)
+    public void Unsubscribe(UnityAction action)
     {
-        ulong clientId = NetworkManager.LocalClientId;
-        if (subscribers.ContainsKey(clientId))
-            subscribers[clientId].Remove(action);
+        m_subscribers.RemoveListener(action);
+    }
+
+    /// <summary>
+    /// 현재 클라이언트에서 모든 구독을 해제합니다.
+    /// </summary>
+    public void UnsubscribeAll()
+    {
+        m_subscribers.RemoveAllListeners();
     }
     #endregion
 
@@ -47,9 +54,11 @@ public class NetAction : NetworkBehaviour
     /// 서버에서 특정 클라이언트의 구독자들을 실행합니다.
     /// </summary>
     /// <param name="targetClientId">대상 클라이언트 ID</param>
-    [ServerRpc]
     public void InvokeClientRpc(ulong targetClientId)
     {
+        if (!NetworkManager.Singleton.IsServer)
+            return;
+
         InvokeSubscribersClientRpc(new ClientRpcParams
         {
             Send = new ClientRpcSendParams
@@ -62,8 +71,8 @@ public class NetAction : NetworkBehaviour
     /// <summary>
     /// 서버에서 모든 클라이언트의 구독자들을 실행합니다.
     /// </summary>
-    [ServerRpc]
-    public void InvokeAllClientsRpc()
+    [ClientRpc]
+    public void InvokeAllClientRpc()
     {
         InvokeSubscribersClientRpc();
     }
@@ -73,18 +82,22 @@ public class NetAction : NetworkBehaviour
     /// <summary>
     /// 클라이언트에서 서버의 구독자들을 실행합니다.
     /// </summary>
-    [ClientRpc]
+    [ServerRpc]
     public void InvokeServerRpc()
     {
-        if (IsServer && subscribers.ContainsKey(NetworkManager.ServerClientId))
-        {
-            foreach (var action in subscribers[NetworkManager.ServerClientId])
-                action?.Invoke();
-        }
+        m_subscribers?.Invoke();
     }
     #endregion
 
     #region Internal Methods
+    /// <summary>
+    /// 현재 클라이언트에서 구독자들을 실행합니다.
+    /// </summary>
+    public void Invoke()
+    {
+        m_subscribers?.Invoke();
+    }
+
     /// <summary>
     /// 클라이언트의 구독자들을 실행하는 내부 메서드입니다.
     /// </summary>
@@ -92,12 +105,7 @@ public class NetAction : NetworkBehaviour
     [ClientRpc]
     private void InvokeSubscribersClientRpc(ClientRpcParams clientRpcParams = default)
     {
-        ulong clientId = NetworkManager.LocalClientId;
-        if (subscribers.ContainsKey(clientId))
-        {
-            foreach (var action in subscribers[clientId])
-                action?.Invoke();
-        }
+        m_subscribers?.Invoke();
     }
     #endregion
 }

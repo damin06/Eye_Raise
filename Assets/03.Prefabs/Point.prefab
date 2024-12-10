@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 9089507145201909205}
   - component: {fileID: 5019532946474922310}
   - component: {fileID: 1741850321869488550}
+  - component: {fileID: 7185476756114730974}
+  - component: {fileID: 6383169280715601764}
   m_Layer: 7
   m_Name: Point
   m_TagString: Untagged
@@ -48,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 452782395
+  GlobalObjectIdHash: 1978907409
   InScenePlacedSourceGlobalObjectIdHash: 321986172
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -152,12 +154,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03779cb8888bcb940827f783fd4b74cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  point:
+  Score:
     m_InternalValue: 0
-  isUserPoint:
+  PointOwner:
     m_InternalValue: 0
-  color:
-    m_InternalValue: {r: 0, g: 0, b: 0, a: 0}
+  PointColor:
+    m_InternalValue: {r: 0, g: 0, b: 1, a: 1}
 --- !u!58 &1741850321869488550
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -193,3 +195,42 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!50 &7185476756114730974
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8182276192276013876}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
+--- !u!114 &6383169280715601764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8182276192276013876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80d7c879794dfda4687da0e400131852, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -1,11 +1,18 @@
 using Cinemachine;
+using DG.Tweening;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Accessibility;
+using UnityEngine.Events;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class Eye_Brain : NetworkBehaviour
 {
@@ -15,17 +22,24 @@ public class Eye_Brain : NetworkBehaviour
     [SerializeField] private InputReader inputReader;
     [SerializeField] private float baseMoveSpeed = 3f;
     [SerializeField] private int minSplitPoint = 100;
+    [SerializeField] private int minEmissionPoint = 100;
     [SerializeField] private float mergeableTime = 30f;
     [SerializeField] private float splitForce = 2f;
+    [SerializeField] private float BlinkSpeed = 4.5f;
+    [SerializeField] private float minBlinkDelay = 2f;
+    [SerializeField] private float maxBlinkDelay = 5f;
 
+    private bool IsEyeClosed = false;
     public float MergeableTime => mergeableTime;
     private Vector2 aimPos;
     public ulong LastHitDealerID;
     private Eye_Camera eyeCamera;
     public NetworkObject mainAgent { private set; get; }
+
     #endregion
 
     #region Network Variables
+    private NetworkVariable<float> eyelidValue = new NetworkVariable<float>(1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<int> totalScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<int> TotalScore => totalScore;
     public NetworkVariable<FixedString32Bytes> username = new NetworkVariable<FixedString32Bytes>();
@@ -63,6 +77,7 @@ public class Eye_Brain : NetworkBehaviour
             inputReader.SplitEvent += HandleSplit;
             inputReader.AimPositionEvent += HandleAimPosition;
             inputReader.MouseScrollEvent += HandleMousScroll;
+            inputReader.EmissionEvent += HandleEmission;
 
             foreach (var entity in eyeAgents)
             {
@@ -100,6 +115,11 @@ public class Eye_Brain : NetworkBehaviour
             OnPlayerDeSpawned?.Invoke(this);
         }
     }
+
+    private void Update()
+    {
+        UpdateEyelidValue();
+    }
     #endregion
 
     #region Agent Management
@@ -136,7 +156,32 @@ public class Eye_Brain : NetworkBehaviour
     }
     #endregion
 
-    #region Split Management
+    #region Skill Management
+
+    private Coroutine ICloseEye;
+    public void CloseEye(float _duration)
+    {
+        ICloseEye = StartCoroutine(CloseEyeRoutine(_duration));
+    }
+
+    private IEnumerator CloseEyeRoutine(float _duration)
+    {
+        DOTween.To(() => eyelidValue.Value, x => eyelidValue.Value = x, 1, 0.5f).OnUpdate(() =>
+        {
+            VolumeManager.Instance.SetEyeClosure(eyelidValue.Value);
+        });
+        IsEyeClosed = true;
+
+        yield return new WaitForSeconds(_duration);
+
+        DOTween.To(() => eyelidValue.Value, x => eyelidValue.Value = x, -1, 0.5f).OnUpdate(() =>
+        {
+            VolumeManager.Instance.SetEyeClosure(eyelidValue.Value);
+        });
+        blinkDelay = Random.Range(minBlinkDelay, maxBlinkDelay);
+        IsEyeClosed = false;
+    }
+
     [ServerRpc]
     private void SplitAgentServerRpc(Vector2 _pos)
     {
@@ -168,6 +213,25 @@ public class Eye_Brain : NetworkBehaviour
             _rb.AddForce(dir * force, ForceMode2D.Impulse);
         }
     }
+
+    [ServerRpc]
+    private void EmissionPointServerRpc(Vector2 _pos, ulong ownerClientId)
+    {
+        foreach (var _agent in eyeAgents)
+        {
+            if (_agent.score < minEmissionPoint)
+                continue;
+
+            var _agentObj = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_agent.networkObjectId];
+            if (_agentObj.TryGetComponent(out Eye_Agent _eyeAgent))
+            {
+                _eyeAgent.score.Value -= 17;
+
+                ScoreManager.Instance.SpawnPlayerPoint(ownerClientId, 13, _eyeAgent.transform.position, _pos - (Vector2)_agentObj.transform.position, eyeColor.Value);
+            }
+        }
+    }
+
     #endregion
 
     #region Event Handlers
@@ -188,6 +252,11 @@ public class Eye_Brain : NetworkBehaviour
     private void HandleSplit()
     {
         SplitAgentServerRpc(aimPos);
+    }
+
+    private void HandleEmission()
+    {
+        EmissionPointServerRpc(aimPos, OwnerClientId);
     }
 
     private void HandleNameChanged(FixedString32Bytes prev, FixedString32Bytes newValue)
@@ -244,6 +313,44 @@ public class Eye_Brain : NetworkBehaviour
                 networkObjectId = networkObjectId,
                 score = newScore
             };
+        }
+    }
+
+    private float blinkDelay = 0;
+    private float temp;
+    private void UpdateEyelidValue()
+    {
+        if (IsClient)
+        {
+            foreach (var agent in eyeAgents)
+            {
+                if (NetworkManager.Singleton.SpawnManager.SpawnedObjects[agent.networkObjectId].TryGetComponent(out Eye_Animation _animation))
+                {
+                    _animation.SetEyelid(eyelidValue.Value + 1);
+                }
+            }
+        }
+
+        if (IsOwner)
+        {
+            if (IsEyeClosed)
+                return;
+
+            if (blinkDelay > 0)
+            {
+                blinkDelay -= Time.deltaTime;
+                return;
+            }
+
+            temp += Time.deltaTime * Random.Range(BlinkSpeed - 0.5f, BlinkSpeed + 0.5f);
+            eyelidValue.Value = Mathf.Cos(temp);
+            VolumeManager.Instance.SetEyeClosure(eyelidValue.Value);
+
+            if (temp >= Mathf.PI * 2)
+            {
+                blinkDelay = Random.Range(minBlinkDelay, maxBlinkDelay);
+                eyelidValue.Value = 0;
+            }
         }
     }
 

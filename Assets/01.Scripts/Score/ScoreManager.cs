@@ -4,6 +4,12 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEditor;
 
+
+/// <summary>
+/// 팩토리 패턴으로 바꾸기
+/// </summary>
+/// 
+
 public class ScoreManager : NetCodeSingleton<ScoreManager>
 {
     [SerializeField] private MapRange mapRange;
@@ -49,15 +55,20 @@ public class ScoreManager : NetCodeSingleton<ScoreManager>
         }
     }
 
-    public void SpawnPlayerPoint(int point, Vector3 position, Color color)
+    public void SpawnPlayerPoint(ulong ownerClientId, int point, Vector3 position, Vector2 dir, Color color)
     {
         var _newPoint = NetworkObjectPool.Instance.GetNetworkObject("Point", position, Quaternion.identity);
 
         if (_newPoint.TryGetComponent(out Point _point))
         {
             _point.Score.Value = point;
-            _point.PointOwner.Value = OwnerClientId;
+            _point.PointOwner.Value = ownerClientId;
             _point.PointColor.Value = color;
+        }
+
+        if( _newPoint.TryGetComponent(out Rigidbody2D _rb))
+        {
+            _rb.AddForce(dir * 2, ForceMode2D.Impulse);
         }
     }
 

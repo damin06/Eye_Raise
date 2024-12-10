@@ -14,9 +14,10 @@ public class VolumeManager : NetCodeSingleton<VolumeManager>
     private Vignette vignette;
     private Coroutine blinkCoroutine;
 
-    private void Awake()
+    protected override void Awake()
     {
         base.Awake();
+
         volume = GetComponent<Volume>();
         volume.profile.TryGet(out vignette);
     }
