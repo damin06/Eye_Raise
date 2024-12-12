@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -34,10 +35,11 @@ public class Button_Lobby : Button
     {
         string name = await CloudManager.Instance.LoadPlayerData<string>("name");
 
+
         try
         {
             LobbySingleton.Instance.JoinLobbyByCode(Lobby.Id, name);
-            ApplicationController.Instance.StartClient(Lobby.Data["server_ip"].Value);
+            ApplicationController.Instance.StartClient(Lobby.Data["server_ip"].Value, Convert.ToUInt16(Lobby.Data["server_port"].Value));
         }
         catch(LobbyServiceException ex)
         {

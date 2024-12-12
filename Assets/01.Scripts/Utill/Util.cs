@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Runtime.CompilerServices;
 using Random = UnityEngine.Random;
+using System.Net.Sockets;
+using System.Net;
 
 #region Common Types
 public enum FirebaseState : ulong
@@ -173,7 +175,7 @@ namespace Util.Component
 
                 if (component == null)
                 {
-                    Debug.LogError($"Component {fieldType.Name} of object {attribute._gameObjectName} does not exist.");
+                    Log.Error($"Component {fieldType.Name} of object {attribute._gameObjectName} does not exist.");
                     continue;
                 }
 
@@ -335,6 +337,62 @@ namespace Util.GameObject
                 }
             }
             return objects;
+        }
+    }
+}
+
+namespace Util.Network
+{
+    public static class NetworkUtils
+    {
+        /// <summary>
+        /// 지정된 포트가 사용 중인지 확인합니다.
+        /// </summary>
+        /// <param name="port">확인할 포트 번호</param>
+        /// <returns>포트가 사용 중이면 true, 사용 가능하면 false</returns>
+        public static bool IsPortInUse(int port)
+        {
+            try
+            {
+                // TcpListener를 사용하여 포트를 열어봅니다.
+                TcpListener tcpListener = new TcpListener(IPAddress.Loopback, port);
+                tcpListener.Start();
+                tcpListener.Stop();
+                return false; // 포트가 사용되지 않으면 성공적으로 열 수 있습니다.
+            }
+            catch (SocketException)
+            {
+                return true; // 포트가 사용 중이면 예외가 발생합니다.
+            }
+        }
+
+        /// <summary>
+        /// 지정된 범위 내에서 사용되지 않은 랜덤 포트 번호를 반환합니다.
+        /// </summary>
+        /// <param name="minPort">최소 포트 번호 (기본: 49152)</param>
+        /// <param name="maxPort">최대 포트 번호 (기본: 65535)</param>
+        /// <returns>사용되지 않은 랜덤 포트 번호</returns>
+        public static ushort GetRandomAvailablePort(int minPort = 49152, int maxPort = 65535)
+        {
+            ushort port = 0;
+            int count = 0;
+
+            while (true)
+            {
+                if(count++ > 100000)
+                {
+                    Log.Error("No port numbers left");
+                    return default;
+                }
+                // 랜덤 포트 번호 생성
+                port = (ushort)Random.Range(minPort, maxPort + 1);
+
+                // 포트가 이미 사용 중인지 확인
+                if (!IsPortInUse(port))
+                {
+                    return port;  // 사용되지 않은 포트 번호 반환
+                }
+            }
         }
     }
 }

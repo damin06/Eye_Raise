@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -24,7 +25,7 @@ public class VolumeManager : NetCodeSingleton<VolumeManager>
 
     public void SetEyeClosure(float closureAmount)
     {
-        vignette.intensity.value = closureAmount;
+        vignette.intensity.value = Mathf.Clamp(closureAmount, 0.15f, float.MaxValue);
     }
 
     public void AnimateEyeClosure(float targetAmount, float duration)

@@ -11,6 +11,7 @@ using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Util.Network;
 using Random = UnityEngine.Random;
 
 public class ApplicationController : MonoBehaviour
@@ -44,6 +45,11 @@ public class ApplicationController : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        //InvokeRepeating("UpdateLobby", 1, 0.02f);
+    }
+
     private void Update()
     {
         LobbySingleton.Instance.Update();
@@ -63,17 +69,17 @@ public class ApplicationController : MonoBehaviour
                 break;
             }
         }
+        _port = NetworkUtils.GetRandomAvailablePort();
 
         var lobbies = await LobbySingleton.Instance.GetLobbiesList();
 
-
-        ////¹«·á¹öÀü ¿ä±Ý ÇÑµµ ¤Ð¤Ð
+        ////ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ñµï¿½ ï¿½Ð¤ï¿½
         //await Task.Delay(1100);
 
         await LobbySingleton.Instance.CreateLobby($"Lobby{lobbies.Count + 1}", 51, _ipAddress, _port.ToString());
         //await LobbySingleton.Instance.CreateLobby($"Lobby Test", 50, _ipAddress, _port.ToString());
 
-        Debug.Log($"current IP ({_ipAddress})");
+        Debug.Log($"current IP ({_ipAddress}) current Port ({_port})");
         ServerSingleton server = Instantiate(_serverPrefab, transform);
         server.StartServer(_playerPrefab, _ipAddress, _port);
         NetworkManager.Singleton.SceneManager.LoadScene(SceneList.Game, LoadSceneMode.Single);
@@ -85,7 +91,7 @@ public class ApplicationController : MonoBehaviour
 
         foreach (IPAddress address in host.AddressList)
         {
-            //ÀÎÅÍ³ÝÆ®¿öÅ© IPÀÇ °æ¿ì¸¸
+            //ï¿½ï¿½ï¿½Í³ï¿½Æ®ï¿½ï¿½Å© IPï¿½ï¿½ ï¿½ï¿½ì¸¸
             if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
                 return address.ToString();
@@ -94,12 +100,13 @@ public class ApplicationController : MonoBehaviour
         return string.Empty;
     }
 
-    public async void StartClient(string ipAddress)
+    public async void StartClient(string ipAddress, ushort port)
     {
         if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
             return;
+        
         _ipAddress = ipAddress;
-
+        _port = port;
 
         ClientSingleton client = Instantiate(_clientPrefab, transform);
         client.CreateClient(_ipAddress, _port);
@@ -124,17 +131,27 @@ public class ApplicationController : MonoBehaviour
             {
                 _ipAddress = ipAdress;
             }
-            //¼­¹ö ¸¸µé¾îÁÖ°í.
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½.
             ServerSingleton server = Instantiate(_serverPrefab, transform);
             server.StartServer(_playerPrefab, _ipAddress, _port);
         }
         else
         {
-            //Å¬¶óÀÌ¾ðÆ® ¸¸µé¾îÁÖ°í
+            //Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½
             ClientSingleton client = Instantiate(_clientPrefab, transform);
             client.CreateClient(_ipAddress, _port);
 
             SceneManager.LoadScene(SceneList.Menu);
         }
+    }
+
+    private void OnDisable()
+    {
+        CancelInvoke();
+    }
+
+    private void OnDestroy()
+    {
+        CancelInvoke();
     }
 }

@@ -4,7 +4,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEditor;
 
-
 /// <summary>
 /// 팩토리 패턴으로 바꾸기
 /// </summary>
@@ -22,24 +21,46 @@ public class ScoreManager : NetCodeSingleton<ScoreManager>
 
     private List<Point> points = new List<Point>();
 
-
-    private void Update()
+    public override void OnNetworkSpawn()
     {
-        if (!IsServer || points.Count > maxSpawnCount)
-            return;
+        base.OnNetworkSpawn();
 
-        if (points.Count < minSpawnCount || m_lastSpawnedTime + 2 < Time.time)
+        if (IsServer)
         {
-            m_lastSpawnedTime = Time.time;
-            SpawnPoint(new Vector2
-                (
-                    mapRange.GetRandomSpawnPos().x,
-                    mapRange.GetRandomSpawnPos().y
-                ),
-                    Random.Range(minScale, maxScale),
-                    Random.ColorHSV(0f, 1f, 0.9f, 1f, 0.9f, 1f)
-                );
+            for(int i = 0; i < minSpawnCount; i++)
+            {
+                SpawnRandomPoint();
+            }
+
+            Invoke("SpawnRoutine", Random.Range(1, 6));
         }
+    }
+    
+    private void SpawnRoutine()
+    {
+        if(points.Count > maxSpawnCount)
+        {
+            CancelInvoke();
+            return;
+        }
+
+        SpawnRandomPoint();
+
+        Invoke("SpawnRoutine", Random.Range(1, 6));
+    }
+
+    public void SpawnRandomPoint()
+    {
+        SpawnPoint
+        (
+            new Vector2
+            (
+                mapRange.GetRandomSpawnPos().x,
+                mapRange.GetRandomSpawnPos().y
+            ),
+            Random.Range(minScale, maxScale),
+            Random.ColorHSV(0f, 1f, 0.9f, 1f, 0.9f, 1f)
+        );
     }
 
     public void SpawnPoint(Vector2 position, float scale, Color color)
@@ -76,11 +97,20 @@ public class ScoreManager : NetCodeSingleton<ScoreManager>
     {
         if (point.TryGetComponent(out Point _point))
         {
-            points.Remove(_point);
+            if (points.Contains(_point))
+            {
+                points.Remove(_point);
+            }
             _point.ActiveClientRpc(false);
         }
 
         NetworkObjectPool.Instance.ReturnNetworkObject(point);
+
+        if(points.Count < maxSpawnCount)
+        {
+            CancelInvoke();
+            Invoke("SpawnRoutine", Random.Range(1, 6));
+        }
     }
 
 }

@@ -1,18 +1,12 @@
-using Cinemachine;
 using DG.Tweening;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Accessibility;
-using UnityEngine.Events;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using Util;
+using Util.Math;
 
 public class Eye_Brain : NetworkBehaviour
 {
@@ -344,12 +338,13 @@ public class Eye_Brain : NetworkBehaviour
 
             temp += Time.deltaTime * Random.Range(BlinkSpeed - 0.5f, BlinkSpeed + 0.5f);
             eyelidValue.Value = Mathf.Cos(temp);
-            VolumeManager.Instance.SetEyeClosure(eyelidValue.Value);
+            VolumeManager.Instance.SetEyeClosure(Util.Math.MathUtils.Remap(eyelidValue.Value, 0, 1, 1, 0.15f));
 
             if (temp >= Mathf.PI * 2)
             {
                 blinkDelay = Random.Range(minBlinkDelay, maxBlinkDelay);
-                eyelidValue.Value = 0;
+                temp = 0;
+                //eyelidValue.Value = 0;
             }
         }
     }

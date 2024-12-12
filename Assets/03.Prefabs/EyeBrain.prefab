@@ -169,9 +169,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eyeAgentObj: {fileID: 8361397804778735486, guid: b66fc55b8ac34434f958cac101db2ded, type: 3}
   inputReader: {fileID: 11400000, guid: bff4493bc1a5e854f8857614fceb89bd, type: 2}
-  moveSpeed: 40
+  baseMoveSpeed: 3
   minSplitPoint: 100
+  minEmissionPoint: 100
   mergeableTime: 30
+  splitForce: 2
+  BlinkSpeed: 4.5
+  minBlinkDelay: 2
+  maxBlinkDelay: 5
   LastHitDealerID: 0
   username:
     m_InternalValue:
@@ -222,10 +227,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be782763821d6b3488ce7e57636a496d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cam: {fileID: 6313960925380119765}
+  virtualCamera: {fileID: 6313960925380119765}
   followTarget: {fileID: 5471279128374862868}
-  minFov: 1
-  maxFov: 5
+  followSpeed: 5
+  minOrthoSize: 10
+  maxOrthoSize: 50
 --- !u!1 &7481640557372195936
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,6 +242,7 @@ GameObject:
   m_Component:
   - component: {fileID: 313094485436188657}
   - component: {fileID: 6313960925380119765}
+  - component: {fileID: 5118992524600797259}
   m_Layer: 0
   m_Name: Virtual Camera
   m_TagString: Untagged
@@ -252,7 +259,7 @@ Transform:
   m_GameObject: {fileID: 7481640557372195936}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.48, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -298,3 +305,18 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_ComponentOwner: {fileID: 5312374945424337179}
+--- !u!114 &5118992524600797259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7481640557372195936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f453f694addf4275988fac205bc91968, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_BoundingShape2D: {fileID: 0}
+  m_Damping: 0.5
+  m_MaxWindowSize: -1

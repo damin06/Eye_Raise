@@ -15,6 +15,10 @@ public class Eye_Camera : NetworkBehaviour
     [Header("Zoom Settings")]
     [SerializeField] private float minOrthoSize = 10f;
     [SerializeField] private float maxOrthoSize = 50f;
+
+    [Header("Reference")]
+    [SerializeField] private MapRange mapRange;
+
     private float currentOrthoSize = 10f;
 
     private Eye_Brain eyeBrain;
@@ -44,6 +48,12 @@ public class Eye_Camera : NetworkBehaviour
     {
         if (IsOwner)
         {
+            CinemachineConfiner2D Confiner = virtualCamera.GetComponentInChildren<CinemachineConfiner2D>();
+            if (Confiner != null)
+            {
+                Confiner.m_BoundingShape2D = mapRange.MapColider;
+            }
+
             virtualCamera.Priority = 15;
             eyeBrain.TotalScore.OnValueChanged += (int prevValue, int newValue) =>
             {

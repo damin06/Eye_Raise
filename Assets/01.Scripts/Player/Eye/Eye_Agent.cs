@@ -1,17 +1,9 @@
 using DG.Tweening;
-using Mono.CSharp.yyParser;
 using QFSW.QC;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TMPro;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
-using UnityEngine.UI;
 
 public class Eye_Agent : NetworkBehaviour
 {
@@ -28,6 +20,9 @@ public class Eye_Agent : NetworkBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshPro nameLabel;
     [SerializeField] private TMP_FontAsset font;
+
+    [Header("Reference")]
+    [SerializeField] private MapRange mapRange;
 
     public bool CanMerge => creationTime.Value + eyeBrain.MergeableTime < Time.time;
     private Vector2 movementInput;
@@ -56,9 +51,9 @@ public class Eye_Agent : NetworkBehaviour
 
         if (IsClient)
         {
-            await new WaitUntil(() => transform.GetComponentInParent<Eye_Brain>() != null);
+            await new WaitUntil(() => (eyeBrain = transform.GetComponentInParent<Eye_Brain>()) != null);
 
-            eyeBrain = transform.GetComponentInParent<Eye_Brain>();
+            Log.Message("Eye_Brain is null?" + eyeBrain == null);
 
             eyeBrain.username.OnValueChanged += HandleNameChanged;
             eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
@@ -105,8 +100,33 @@ public class Eye_Agent : NetworkBehaviour
             //    return;
 
             //rb.velocity = movementInput.Value;
-            rb.AddForce(movementInput, ForceMode2D.Force);
+            rb.AddForce(ClampMovementToBounds(movementInput), ForceMode2D.Force);
         }
+    }
+
+    private Vector2 ClampMovementToBounds(Vector2 input)
+    {
+        if(transform.position.x >= mapRange.MaxSpawnPos.x && input.x > 0)
+        {
+            input.x = 0;
+        }
+
+        if(transform.position.x <= mapRange.MinSpawnPos.x && input.x < 0) 
+        {
+            input.x = 0;
+        }
+
+        if(transform.position.y >= mapRange.MinSpawnPos.y && input.y > 0)
+        {
+            input.y = 0;
+        }
+
+        if(transform.position.y <= mapRange.MaxSpawnPos.y && input.y < 0)
+        {
+            input.y = 0;
+        }
+
+        return input;
     }
 
     private void HandleNameChanged(FixedString32Bytes previousValue, FixedString32Bytes newValue)
@@ -184,7 +204,8 @@ public class Eye_Agent : NetworkBehaviour
 
             if (GameManager.Instance.ServerId != _point.OwnerClientId && _point.OwnerClientId != OwnerClientId)
             {
-
+                eyeBrain.CloseEye(5f);
+                Log.Message($"{_point.OwnerClientId}, {OwnerClientId}");
             }
         }
 
