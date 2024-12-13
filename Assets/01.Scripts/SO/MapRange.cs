@@ -5,11 +5,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "new MapRange", menuName = "SO/MapRange")]
 public class MapRange : ScriptableObject
 {
-    [SerializeField] private PolygonCollider2D mapCollider;
     [SerializeField] private Vector2 minSpawnPos;
     [SerializeField] private Vector2 maxSpawnPos;
 
-    public PolygonCollider2D MapColider => mapCollider;
     public Vector2 MinSpawnPos => minSpawnPos;
     public Vector2 MaxSpawnPos => maxSpawnPos;
 

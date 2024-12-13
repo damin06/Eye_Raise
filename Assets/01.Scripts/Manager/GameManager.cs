@@ -9,6 +9,9 @@ public class GameManager : NetCodeSingleton<GameManager>
     private NetworkVariable<ulong> serverId = new NetworkVariable<ulong>();
     public ulong ServerId => serverId.Value;
 
+    [SerializeField] private PolygonCollider2D mapColider;
+    public PolygonCollider2D MapColider => mapColider;
+
     protected override void Awake()
     {
         base.Awake();

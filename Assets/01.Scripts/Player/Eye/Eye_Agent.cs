@@ -23,6 +23,7 @@ public class Eye_Agent : NetworkBehaviour
 
     [Header("Reference")]
     [SerializeField] private MapRange mapRange;
+    private PolygonCollider2D mapColider;
 
     public bool CanMerge => creationTime.Value + eyeBrain.MergeableTime < Time.time;
     private Vector2 movementInput;
@@ -60,6 +61,11 @@ public class Eye_Agent : NetworkBehaviour
 
             HandleNameChanged("", eyeBrain.username.Value);
             HandleEyeColorChanged(eyeBrain.eyeColor.Value, eyeBrain.eyeColor.Value);
+        }
+
+        if (IsOwner)
+        {
+            mapColider = GameManager.Instance.MapColider;
         }
     }
 

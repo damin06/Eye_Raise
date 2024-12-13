@@ -2542,10 +2542,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48ff78b5cce97eb48954f763e92045e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  font: {fileID: 11400000, guid: acfc198c79e534d4587528585112b8ab, type: 2}
-  nameLabel: {fileID: 6828640190462396410}
   score:
     m_InternalValue: 0
+  nameLabel: {fileID: 6828640190462396410}
+  font: {fileID: 11400000, guid: acfc198c79e534d4587528585112b8ab, type: 2}
+  mapRange: {fileID: 11400000, guid: e4c4416973b36544dbb63c2b25b89c95, type: 2}
 --- !u!1 &8620215383595811831
 GameObject:
   m_ObjectHideFlags: 0
