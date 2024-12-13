@@ -177,7 +177,7 @@ public abstract class UI_Root : UI_Base
     /// <summary>
     /// 스택의 모든 팝업을 초기화합니다.
     /// </summary>
-    public async Task ClearPanelStack(bool immediately = false)
+    public async Task ClearPopupStack(bool immediately = false)
     {
         try
         {
