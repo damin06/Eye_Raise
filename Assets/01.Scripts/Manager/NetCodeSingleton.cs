@@ -33,7 +33,7 @@ public abstract class NetCodeSingleton<T> : NetworkBehaviour where T : Component
         if (instance == null)
         {
             instance = this as T;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -46,7 +46,7 @@ public abstract class NetCodeSingleton<T> : NetworkBehaviour where T : Component
         if (instance == null)
         {
             instance = this as T;
-            DontDestroyOnLoad(gameObject);
+            //DontDestroyOnLoad(gameObject);
         }
         else if (instance != this)
         {

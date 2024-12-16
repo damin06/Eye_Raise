@@ -51,7 +51,7 @@ public class Eye_Camera : NetworkBehaviour
             CinemachineConfiner2D Confiner = virtualCamera.GetComponentInChildren<CinemachineConfiner2D>();
             if (Confiner != null)
             {
-                Confiner.m_BoundingShape2D = mapRange.MapColider;
+                Confiner.m_BoundingShape2D = GameManager.Instance.MapColider;
             }
 
             virtualCamera.Priority = 15;

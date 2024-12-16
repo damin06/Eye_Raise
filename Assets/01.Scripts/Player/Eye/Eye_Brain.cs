@@ -102,6 +102,8 @@ public class Eye_Brain : NetworkBehaviour
             inputReader.SplitEvent -= HandleSplit;
             inputReader.AimPositionEvent -= HandleAimPosition;
             inputReader.MouseScrollEvent -= HandleMousScroll;
+            inputReader.EmissionEvent -= HandleEmission;
+
         }
 
         if (IsServer)
@@ -190,21 +192,19 @@ public class Eye_Brain : NetworkBehaviour
                 _eyeAgent.score.Value /= 2;
 
                 ulong _newAgentObjId;
-                CreateAgent(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.position);
-
-                var _newAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[_newAgentObjId];
-                AddForceAgentClientRpc(_newAgentObjId, _pos - (Vector2)_newAgent.transform.position, splitForce);
+                CreateAgent(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.InverseTransformPoint((_pos - (Vector2)_agentObj.transform.position).normalized));
+                //AddForceAgentClientRpc(_newAgentObjId, (_pos - (Vector2)_newAgent.transform.position) * splitForce);
             }
         }
     }
 
     [ClientRpc]
-    private void AddForceAgentClientRpc(ulong agentId, Vector2 dir, float force)
+    private void AddForceAgentClientRpc(ulong agentId, Vector2 dir)
     {
         var _agentObj = NetworkManager.Singleton.SpawnManager.SpawnedObjects[agentId];
         if (_agentObj.TryGetComponent(out Rigidbody2D _rb))
         {
-            _rb.AddForce(dir * force, ForceMode2D.Impulse);
+            _rb.AddForce(dir, ForceMode2D.Impulse);
         }
     }
 
