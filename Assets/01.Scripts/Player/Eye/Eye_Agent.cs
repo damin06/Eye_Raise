@@ -26,7 +26,7 @@ public class Eye_Agent : NetworkBehaviour
     private PolygonCollider2D mapColider;
 
     public bool CanMerge => creationTime.Value + eyeBrain.MergeableTime < Time.time;
-    private Vector2 movementInput;
+    private NetworkVariable<Vector2> movementInput = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private void Awake()
     {
@@ -53,14 +53,6 @@ public class Eye_Agent : NetworkBehaviour
         if (IsClient)
         {
             await new WaitUntil(() => (eyeBrain = transform.GetComponentInParent<Eye_Brain>()) != null);
-
-            Log.Message("Eye_Brain is null?" + eyeBrain == null);
-
-            eyeBrain.username.OnValueChanged += HandleNameChanged;
-            eyeBrain.eyeColor.OnValueChanged += HandleEyeColorChanged;
-
-            HandleNameChanged("", eyeBrain.username.Value);
-            HandleEyeColorChanged(eyeBrain.eyeColor.Value, eyeBrain.eyeColor.Value);
         }
 
         if (IsOwner)
@@ -71,6 +63,7 @@ public class Eye_Agent : NetworkBehaviour
 
     private void HandleEyeColorChanged(Color previousValue, Color newValue)
     {
+        Log.Message($"{eyeBrain.name}'s Colror {newValue}");
         eyeAnimation.SetEyeColor(newValue);
     }
 
@@ -87,9 +80,13 @@ public class Eye_Agent : NetworkBehaviour
 
     private void FixedUpdate()
     {
+        if (IsClient)
+        {
+            eyeAnimation.InputMovementAnimationClientRpc(movementInput.Value.normalized);
+        }
+
         if (IsOwner)
         {
-            eyeAnimation.InputMovementAnimationClientRpc(movementInput.normalized);
 
             // Vector2 _viewport = Camera.main.WorldToViewportPoint(transform.position);
             //if (_viewport.x > 1)
@@ -106,7 +103,7 @@ public class Eye_Agent : NetworkBehaviour
             //    return;
 
             //rb.velocity = movementInput.Value;
-            rb.AddForce(ClampMovementToBounds(movementInput), ForceMode2D.Force);
+            rb.AddForce(ClampMovementToBounds(movementInput.Value), ForceMode2D.Force);
         }
     }
 
@@ -135,11 +132,6 @@ public class Eye_Agent : NetworkBehaviour
         return input;
     }
 
-    private void HandleNameChanged(FixedString32Bytes previousValue, FixedString32Bytes newValue)
-    {
-        nameLabel.text = newValue.ToString();
-    }
-
     public void SetNameLabel(string name)
     {
         nameLabel.text = name;
@@ -154,7 +146,7 @@ public class Eye_Agent : NetworkBehaviour
     [Command("AgentMove")]
     public void MoveInput(Vector2 dir)
     {
-        movementInput = dir;
+        movementInput.Value = dir;
     }
 
     [Command]

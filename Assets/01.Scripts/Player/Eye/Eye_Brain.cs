@@ -108,7 +108,7 @@ public class Eye_Brain : NetworkBehaviour
 
         if (IsServer)
         {
-            OnPlayerDeSpawned?.Invoke(this);
+            //OnPlayerDeSpawned?.Invoke(this);
         }
     }
 
@@ -149,6 +149,7 @@ public class Eye_Brain : NetworkBehaviour
         }
 
         HandleNameChanged(username.Value, username.Value);
+        HandleEyeColorChanged(eyeColor.Value, eyeColor.Value);
     }
     #endregion
 
@@ -264,16 +265,19 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleEyeColorChanged(Color prev, Color newValue)
     {
-        foreach (var agent in eyeAgents)
+        Eye_Agent[] _agents = transform.GetComponentsInChildren<Eye_Agent>();
+        foreach (var _agent in _agents)
         {
-            // Color change logic
+            _agent.SetEyeColor(newValue);
         }
     }
 
     private void HandleAgentsListChanged(NetworkListEvent<EyeEntityState> evt)
     {
-        if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove && eyeAgents.Count <= 0)
+        Log.Message($"eyeAgents Count : {eyeAgents.Count}, Type : {evt.Type}");
+        if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove && eyeAgents.Count == 0)
         {
+            Log.Message($"{username} is Die!");
             HandleDie();
             return;
         }
@@ -314,7 +318,7 @@ public class Eye_Brain : NetworkBehaviour
     private float temp;
     private void UpdateEyelidValue()
     {
-        if (IsClient)
+        if (IsClient && eyeAgents.Count > 0)
         {
             foreach (var agent in eyeAgents)
             {
@@ -352,8 +356,15 @@ public class Eye_Brain : NetworkBehaviour
     private void HandleDie()
     {
         totalScore.Value = 0;
+        HandleDieServerRpc();
+
+        //NetworkObject.Despawn(true);
+    }
+
+    [ServerRpc]
+    private void HandleDieServerRpc()
+    {
         OnPlayerDeSpawned?.Invoke(this);
-        NetworkObject.Despawn(true);
     }
 
     public void RemoveAgent(ulong networkObjectId)

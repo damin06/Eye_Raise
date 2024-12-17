@@ -39,6 +39,12 @@ public class Eye_Animation : NetworkBehaviour
         //}
     }
 
+    public override void OnNetworkSpawn()
+    {
+        
+
+    }
+
     private void Update()
     {
         RePlaceMovementAnimation();
