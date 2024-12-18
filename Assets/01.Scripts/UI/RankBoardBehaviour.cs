@@ -169,25 +169,45 @@ public class RankBoardBehaviour : NetworkBehaviour
 
     private void AdjustScoreToUIList()
     {
-        //값을 받아서 해당 UI를 찾아서 (올바른 클라이언트 ID) score를 갱신한다.
-        // 선택 : 갱신후에는 UIList를 정렬하고 
-        // 정렬된 순서에 맞춰서 실제 UI의 순서도 변경한다.
-        // RemoveFromParent => Add
-
-        foreach (var item in _rankUIList)
-            item.gameObject.transform.SetParent(null);
-
-        for (int i = 0; i < _rankList.Count; i++)
+        // _rankUIList를 점수를 기준으로 내림차순으로 정렬
+        _rankUIList.Sort((a, b) =>
         {
-            foreach(var ui in _rankUIList)
+            // 각 UI 항목에 해당하는 점수를 _rankList에서 찾기
+            int scoreA = 0;
+            int scoreB = 0;
+
+            // 수동으로 _rankList를 순회하여 점수 찾기
+            foreach (var rank in _rankList)
             {
-                if(ui.clientID == _rankList[i].clientID)
+                if (rank.clientID == a.clientID)
+                    scoreA = rank.score;
+                if (rank.clientID == b.clientID)
+                    scoreB = rank.score;
+            }
+
+            // 점수가 높은 순으로 정렬 (내림차순)
+            return scoreB.CompareTo(scoreA);
+        });
+
+        // 정렬된 순서에 따라 UI 요소 재배치
+        for (int i = 0; i < _rankUIList.Count; i++)
+        {
+            // 순위 업데이트를 위해 현재 레코드 찾기
+            RankBoardEntityState currentRecord = default;
+            foreach (var rank in _rankList)
+            {
+                if (rank.clientID == _rankUIList[i].clientID)
                 {
-                    ui.transform.SetParent(_recordParentTrm);
-                    ui.SetText(i+1, _rankList[i].playerName.ToString(), _rankList[i].score);
+                    currentRecord = rank;
                     break;
                 }
             }
+
+            // 텍스트 업데이트 (순위는 1부터 시작)
+            _rankUIList[i].SetText(i + 1, currentRecord.playerName.ToString(), currentRecord.score);
+
+            // 부모 트랜스폼에서 위치 업데이트
+            _rankUIList[i].transform.SetSiblingIndex(i);
         }
 
     }

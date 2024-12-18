@@ -7,6 +7,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using Util;
 using Util.Math;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class Eye_Brain : NetworkBehaviour
 {
@@ -151,6 +152,23 @@ public class Eye_Brain : NetworkBehaviour
         HandleNameChanged(username.Value, username.Value);
         HandleEyeColorChanged(eyeColor.Value, eyeColor.Value);
     }
+
+    public void MergeAgent(Eye_Agent _myAgent, Eye_Agent _deadAgent)
+    {
+        if (!_deadAgent.NetworkObject.IsSpawned || _deadAgent == null)
+            return;
+
+        if (_deadAgent.OwnerClientId != OwnerClientId)
+        {
+            LastHitDealerID = _deadAgent.OwnerClientId;
+        }
+
+        _myAgent.score.Value += _deadAgent.score.Value;
+        _deadAgent.eyeBrain.RemoveAgent(_deadAgent.NetworkObjectId);
+
+        Log.Message($"Agent is Alive : {_deadAgent.NetworkObject.IsSpawned}");
+        _deadAgent.NetworkObject.Despawn(true);
+    }
     #endregion
 
     #region Skill Management
@@ -275,11 +293,14 @@ public class Eye_Brain : NetworkBehaviour
     private void HandleAgentsListChanged(NetworkListEvent<EyeEntityState> evt)
     {
         Log.Message($"eyeAgents Count : {eyeAgents.Count}, Type : {evt.Type}");
-        if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove && eyeAgents.Count == 0)
+        if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove || evt.Type == NetworkListEvent<EyeEntityState>.EventType.RemoveAt)
         {
-            Log.Message($"{username} is Die!");
-            HandleDie();
-            return;
+            if(eyeAgents.Count == 0)
+            {
+                Log.Message($"{username} is Die!");
+                HandleDie();
+                return;
+            }
         }
 
         UpdateTotalScore(evt.Value);
@@ -357,8 +378,6 @@ public class Eye_Brain : NetworkBehaviour
     {
         totalScore.Value = 0;
         HandleDieServerRpc();
-
-        //NetworkObject.Despawn(true);
     }
 
     [ServerRpc]

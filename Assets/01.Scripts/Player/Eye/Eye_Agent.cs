@@ -11,7 +11,7 @@ public class Eye_Agent : NetworkBehaviour
     private Rigidbody2D rb;
     private Eye_Animation eyeAnimation;
     private Eye_Physics eyePhysics;
-    private Eye_Brain eyeBrain;
+    public Eye_Brain eyeBrain { get; private set; }
 
     [Header("Network Variables")]
     public NetworkVariable<int> score = new NetworkVariable<int>();
@@ -49,16 +49,12 @@ public class Eye_Agent : NetworkBehaviour
             creationTime.Value = Time.time;
         }
 
-
-        if (IsClient)
-        {
-            await new WaitUntil(() => (eyeBrain = transform.GetComponentInParent<Eye_Brain>()) != null);
-        }
-
         if (IsOwner)
         {
             mapColider = GameManager.Instance.MapColider;
         }
+
+        await new WaitUntil(() => (eyeBrain = transform.GetComponentInParent<Eye_Brain>()) != null);
     }
 
     private void HandleEyeColorChanged(Color previousValue, Color newValue)
@@ -185,6 +181,7 @@ public class Eye_Agent : NetworkBehaviour
 
         agent.eyeBrain.RemoveAgent(agent.NetworkObjectId);
         score.Value += agent.score.Value;
+        Log.Message($"AAAA!");
         agent.NetworkObject.Despawn(true);
     }
 
@@ -215,12 +212,14 @@ public class Eye_Agent : NetworkBehaviour
             if (_agent.OwnerClientId != OwnerClientId)
             {
                 Debug.Log($"{_agent.OwnerClientId} Is Deady By {OwnerClientId}");
-                MergeAgent(_agent);
+                //MergeAgent(_agent);
+                eyeBrain.MergeAgent(this, _agent);
             }
             else if (CanMerge && _agent.CanMerge && _agent.OwnerClientId == OwnerClientId)
             {
-                MergeAgent(_agent);
                 Debug.Log($"{_agent.OwnerClientId} Is Merged!");
+                eyeBrain.MergeAgent(this, _agent);
+                //MergeAgent(_agent);
             }
         }
     }

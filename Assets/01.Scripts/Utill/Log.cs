@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class Log
 {
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    //[System.Diagnostics.Conditional("UNITY_EDITOR")]
     public static void Message(object message)
     {
         Debug.Log(message);
