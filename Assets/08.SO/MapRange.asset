@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a6241a3d2cf57b479eade4e27656bf1, type: 3}
   m_Name: MapRange
   m_EditorClassIdentifier: 
-  minSpawnPos: {x: -100, y: 100}
-  maxSpawnPos: {x: 100, y: -100}
+  leftTop: {x: -100, y: 100}
+  rightBottom: {x: 100, y: -100}

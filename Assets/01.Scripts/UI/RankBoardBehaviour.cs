@@ -151,8 +151,6 @@ public class RankBoardBehaviour : NetworkBehaviour
 
     private void HandleRankListChanged(NetworkListEvent<RankBoardEntityState> evt)
     {
-        Debug.Log("Rank List Changed!");
-
         switch (evt.Type)
         {
             case NetworkListEvent<RankBoardEntityState>.EventType.Add:

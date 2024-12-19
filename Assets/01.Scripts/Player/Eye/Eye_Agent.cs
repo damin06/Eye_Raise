@@ -23,17 +23,11 @@ public class Eye_Agent : NetworkBehaviour
 
     [Header("Reference")]
     [SerializeField] private MapRange mapRange;
-    private PolygonCollider2D mapColider;
 
     public bool CanMerge => creationTime.Value + eyeBrain.MergeableTime < Time.time;
     private NetworkVariable<Vector2> movementInput = new NetworkVariable<Vector2>(Vector2.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     private void Awake()
-    {
-        InitializeComponents();
-    }
-
-    private void InitializeComponents()
     {
         rb = GetComponent<Rigidbody2D>();
         eyeAnimation = GetComponent<Eye_Animation>();
@@ -49,29 +43,26 @@ public class Eye_Agent : NetworkBehaviour
             creationTime.Value = Time.time;
         }
 
-        if (IsOwner)
-        {
-            mapColider = GameManager.Instance.MapColider;
-        }
-
         await new WaitUntil(() => (eyeBrain = transform.GetComponentInParent<Eye_Brain>()) != null);
-    }
 
-    private void HandleEyeColorChanged(Color previousValue, Color newValue)
-    {
-        Log.Message($"{eyeBrain.name}'s Colror {newValue}");
-        eyeAnimation.SetEyeColor(newValue);
+        if (IsClient)
+        {
+            if(eyeBrain == null)
+            {
+                eyeBrain = transform.GetComponentInParent<Eye_Brain>();
+            }
+
+            if(eyeBrain != null)
+            {
+                SetNameLabel(eyeBrain.GetUserName().ToString());
+                SetEyeColor(eyeBrain.GetEyeColor());
+            }
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         score.OnValueChanged -= HandleScoreChanged;
-
-        if (IsClient)
-        {
-            //eyeBrain.username.OnValueChanged -= HandleNameChanged;
-            //eyeBrain.eyeColor.OnValueChanged -= HandleEyeColorChanged;
-        }
     }
 
     private void FixedUpdate()
@@ -105,22 +96,22 @@ public class Eye_Agent : NetworkBehaviour
 
     private Vector2 ClampMovementToBounds(Vector2 input)
     {
-        if(transform.position.x >= mapRange.MaxSpawnPos.x && input.x > 0)
+        if(transform.position.x >= mapRange.RightBottom.x && input.x > 0)
         {
             input.x = 0;
         }
 
-        if(transform.position.x <= mapRange.MinSpawnPos.x && input.x < 0) 
+        if(transform.position.x <= mapRange.LeftTop.x && input.x < 0) 
         {
             input.x = 0;
         }
 
-        if(transform.position.y >= mapRange.MinSpawnPos.y && input.y > 0)
+        if(transform.position.y >= mapRange.LeftTop.y && input.y > 0)
         {
             input.y = 0;
         }
 
-        if(transform.position.y <= mapRange.MaxSpawnPos.y && input.y < 0)
+        if(transform.position.y <= mapRange.RightBottom.y && input.y < 0)
         {
             input.y = 0;
         }
@@ -172,19 +163,6 @@ public class Eye_Agent : NetworkBehaviour
         }
     }
 
-    private void MergeAgent(Eye_Agent agent)
-    {
-        if (agent.OwnerClientId != OwnerClientId)
-        {
-            eyeBrain.LastHitDealerID = agent.OwnerClientId;
-        }
-
-        agent.eyeBrain.RemoveAgent(agent.NetworkObjectId);
-        score.Value += agent.score.Value;
-        Log.Message($"AAAA!");
-        agent.NetworkObject.Despawn(true);
-    }
-
     public void OnTriggerEnter2D(Collider2D collision)
     {
         if (!IsServer)
@@ -212,14 +190,12 @@ public class Eye_Agent : NetworkBehaviour
             if (_agent.OwnerClientId != OwnerClientId)
             {
                 Debug.Log($"{_agent.OwnerClientId} Is Deady By {OwnerClientId}");
-                //MergeAgent(_agent);
                 eyeBrain.MergeAgent(this, _agent);
             }
             else if (CanMerge && _agent.CanMerge && _agent.OwnerClientId == OwnerClientId)
             {
                 Debug.Log($"{_agent.OwnerClientId} Is Merged!");
                 eyeBrain.MergeAgent(this, _agent);
-                //MergeAgent(_agent);
             }
         }
     }

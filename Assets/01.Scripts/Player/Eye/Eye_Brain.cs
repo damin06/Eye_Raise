@@ -28,8 +28,6 @@ public class Eye_Brain : NetworkBehaviour
     public float MergeableTime => mergeableTime;
     private Vector2 aimPos;
     public ulong LastHitDealerID;
-    private Eye_Camera eyeCamera;
-    public NetworkObject mainAgent { private set; get; }
 
     #endregion
 
@@ -37,8 +35,8 @@ public class Eye_Brain : NetworkBehaviour
     private NetworkVariable<float> eyelidValue = new NetworkVariable<float>(1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<int> totalScore = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<int> TotalScore => totalScore;
-    public NetworkVariable<FixedString32Bytes> username = new NetworkVariable<FixedString32Bytes>();
-    public NetworkVariable<Color> eyeColor = new NetworkVariable<Color>();
+    private NetworkVariable<FixedString32Bytes> username = new NetworkVariable<FixedString32Bytes>();
+    private NetworkVariable<Color> eyeColor = new NetworkVariable<Color>();
     private NetworkList<EyeEntityState> eyeAgents = new NetworkList<EyeEntityState>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     #endregion
 
@@ -48,11 +46,6 @@ public class Eye_Brain : NetworkBehaviour
     #endregion
 
     #region Unity Lifecycle
-    private void Awake()
-    {
-        eyeCamera = GetComponent<Eye_Camera>();
-    }
-
     public override void OnNetworkSpawn()
     {
         username.OnValueChanged += HandleNameChanged;
@@ -82,7 +75,12 @@ public class Eye_Brain : NetworkBehaviour
                     Type = NetworkListEvent<EyeEntityState>.EventType.Add,
                 });
             }
-            UpdateMainAgent(eyeAgents[0]);
+        }
+
+        if (IsClient)
+        {
+            HandleNameChanged(username.Value, username.Value);
+            HandleEyeColorChanged(eyeColor.Value, eyeColor.Value);
         }
     }
 
@@ -106,11 +104,6 @@ public class Eye_Brain : NetworkBehaviour
             inputReader.EmissionEvent -= HandleEmission;
 
         }
-
-        if (IsServer)
-        {
-            //OnPlayerDeSpawned?.Invoke(this);
-        }
     }
 
     private void Update()
@@ -120,14 +113,14 @@ public class Eye_Brain : NetworkBehaviour
     #endregion
 
     #region Agent Management
-    public void CreateAgent(int score = 100, Vector3 pos = default)
+    public void CreateAgent(int score = 100, Vector2 pos = default)
     {
         CreateAgent(out ulong networkObjectId, score, pos);
     }
 
-    private void CreateAgent(out ulong networkObjectId, int score = 100, Vector3 pos = default)
+    private void CreateAgent(out ulong networkObjectId, int score = 100, Vector2 pos = default)
     {
-        GameObject newAgent = Instantiate(eyeAgentObj, transform);
+        GameObject newAgent = Instantiate(eyeAgentObj, pos, Quaternion.identity);
         networkObjectId = default;
 
         if (newAgent.TryGetComponent(out NetworkObject network))
@@ -149,8 +142,7 @@ public class Eye_Brain : NetworkBehaviour
             }
         }
 
-        HandleNameChanged(username.Value, username.Value);
-        HandleEyeColorChanged(eyeColor.Value, eyeColor.Value);
+        Log.Message($"{username} is Spawned at {newAgent.transform.position} origin pos : {pos}");
     }
 
     public void MergeAgent(Eye_Agent _myAgent, Eye_Agent _deadAgent)
@@ -304,7 +296,6 @@ public class Eye_Brain : NetworkBehaviour
         }
 
         UpdateTotalScore(evt.Value);
-        UpdateMainAgent(evt.Value);
     }
     #endregion
 
@@ -369,7 +360,6 @@ public class Eye_Brain : NetworkBehaviour
             {
                 blinkDelay = Random.Range(minBlinkDelay, maxBlinkDelay);
                 temp = 0;
-                //eyelidValue.Value = 0;
             }
         }
     }
@@ -409,34 +399,6 @@ public class Eye_Brain : NetworkBehaviour
             sum += (Vector2)NetworkManager.SpawnManager.SpawnedObjects[agent.networkObjectId].transform.position;
         }
         return sum / eyeAgents.Count;
-    }
-
-    private void UpdateMainAgent(EyeEntityState value)
-    {
-        if (mainAgent == null)
-        {
-            var newMainAgent = eyeAgents[0];
-
-            foreach (var agent in eyeAgents)
-            {
-                if (agent.score < newMainAgent.score)
-                    continue;
-
-                newMainAgent = agent;
-            }
-
-            mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[newMainAgent.networkObjectId];
-        }
-        else
-        {
-            if (mainAgent.gameObject.TryGetComponent(out Eye_Agent _agent) && mainAgent.NetworkObjectId == value.networkObjectId)
-                return;
-
-            if (_agent.score.Value > value.score)
-                return;
-
-            mainAgent = NetworkManager.Singleton.SpawnManager.SpawnedObjects[value.networkObjectId];
-        }
     }
 
     private void UpdateTotalScore(EyeEntityState value)
