@@ -24,6 +24,17 @@ public class Panel_Lobby : UI_Panel
         base.OnEnable();
 
         RefreshLobbiesList();
+        InvokeRepeating("RefreshLobbiesList", 3, 2);
+    }
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        CancelInvoke();
+    }
+
+    private void OnDestroy()
+    {
+        CancelInvoke();
     }
 
     [Command]
@@ -51,5 +62,4 @@ public class Panel_Lobby : UI_Panel
     {
         yield return null;
     }
-
 }
