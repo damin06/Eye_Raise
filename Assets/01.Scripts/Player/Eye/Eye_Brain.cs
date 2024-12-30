@@ -79,6 +79,15 @@ public class Eye_Brain : NetworkBehaviour
 
         if (IsClient)
         {
+            eyeAgents.OnListChanged += (evt) =>
+            {
+                if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Add || evt.Type == NetworkListEvent<EyeEntityState>.EventType.Insert)
+                {
+                    HandleNameChanged(username.Value, username.Value);
+                    HandleEyeColorChanged(eyeColor.Value, eyeColor.Value);
+                }
+            };
+
             HandleNameChanged(username.Value, username.Value);
             HandleEyeColorChanged(eyeColor.Value, eyeColor.Value);
         }
@@ -202,8 +211,7 @@ public class Eye_Brain : NetworkBehaviour
             {
                 _eyeAgent.score.Value /= 2;
 
-                ulong _newAgentObjId;
-                CreateAgent(out _newAgentObjId, _eyeAgent.score.Value, _agentObj.transform.InverseTransformPoint((_pos - (Vector2)_agentObj.transform.position).normalized));
+                CreateAgent(_eyeAgent.score.Value, _agentObj.transform.InverseTransformPoint((_pos - (Vector2)_agentObj.transform.position).normalized * 0.5f));
                 //AddForceAgentClientRpc(_newAgentObjId, (_pos - (Vector2)_newAgent.transform.position) * splitForce);
             }
         }
@@ -284,7 +292,6 @@ public class Eye_Brain : NetworkBehaviour
 
     private void HandleAgentsListChanged(NetworkListEvent<EyeEntityState> evt)
     {
-        Log.Message($"eyeAgents Count : {eyeAgents.Count}, Type : {evt.Type}");
         if (evt.Type == NetworkListEvent<EyeEntityState>.EventType.Remove || evt.Type == NetworkListEvent<EyeEntityState>.EventType.RemoveAt)
         {
             if(eyeAgents.Count == 0)

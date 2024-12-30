@@ -50,7 +50,7 @@ public class ApplicationController : MonoBehaviour
         //InvokeRepeating("UpdateLobby", 1, 0.02f);
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         LobbySingleton.Instance.Update();
     }

@@ -24,7 +24,7 @@ public class Panel_Lobby : UI_Panel
         base.OnEnable();
 
         RefreshLobbiesList();
-        InvokeRepeating("RefreshLobbiesList", 3, 2);
+        InvokeRepeating("RefreshLobbiesList", 1, 1);
     }
     protected override void OnDisable()
     {

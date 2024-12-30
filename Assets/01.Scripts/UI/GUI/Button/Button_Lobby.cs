@@ -35,7 +35,6 @@ public class Button_Lobby : Button
     {
         string name = await CloudManager.Instance.LoadPlayerData<string>("name");
 
-
         try
         {
             LobbySingleton.Instance.JoinLobbyByCode(Lobby.Id, name);
